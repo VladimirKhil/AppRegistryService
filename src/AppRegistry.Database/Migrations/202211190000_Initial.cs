@@ -12,17 +12,31 @@ public sealed class Initial : Migration
 
     public override void Up()
     {
+        Create.Table(DbConstants.Languages)
+            .WithColumn(nameof(Language.Id)).AsInt32().PrimaryKey()
+            .WithColumn(nameof(Language.Code)).AsString().Unique().NotNullable();
+
         Create.Table(DbConstants.AppFamilies)
             .WithColumn(nameof(AppFamily.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(AppFamily.Name)).AsString().Unique().NotNullable()
             .WithColumn(nameof(AppFamily.Description)).AsString().Nullable()
             .WithColumn(nameof(AppFamily.LogoUri)).AsString().Nullable();
 
+        Create.Table(DbConstants.AppFamiliesLocalized)
+            .WithColumn(nameof(AppFamilyLocalized.FamilyId)).AsGuid().PrimaryKey().ForeignKey(nameof(DbConstants.AppFamilies), nameof(AppFamily.Id))
+            .WithColumn(nameof(AppFamilyLocalized.LanguageId)).AsInt32().PrimaryKey().ForeignKey(nameof(DbConstants.Languages), nameof(Language.Id))
+            .WithColumn(nameof(AppFamilyLocalized.Description)).AsString().Nullable();
+
         Create.Table(DbConstants.Apps)
             .WithColumn(nameof(App.Id)).AsGuid().PrimaryKey()
-            .WithColumn(nameof(App.AppFamilyId)).AsGuid().NotNullable().ForeignKey(nameof(DbConstants.AppFamilies), nameof(AppFamily.Id))
+            .WithColumn(nameof(App.FamilyId)).AsGuid().NotNullable().ForeignKey(nameof(DbConstants.AppFamilies), nameof(AppFamily.Id))
             .WithColumn(nameof(App.Name)).AsString().Unique().NotNullable()
             .WithColumn(nameof(App.KnownIssues)).AsString().Nullable();
+
+        Create.Table(DbConstants.AppsLocalized)
+            .WithColumn(nameof(AppLocalized.AppId)).AsGuid().PrimaryKey().ForeignKey(nameof(DbConstants.Apps), nameof(App.Id))
+            .WithColumn(nameof(AppLocalized.LanguageId)).AsInt32().PrimaryKey().ForeignKey(nameof(DbConstants.Languages), nameof(Language.Id))
+            .WithColumn(nameof(AppLocalized.KnownIssues)).AsString().Nullable();
 
         Create.Table(DbConstants.AppScreenshots)
             .WithColumn(nameof(AppScreenshot.Id)).AsInt32().PrimaryKey().Identity()
@@ -38,6 +52,11 @@ public sealed class Initial : Migration
             .WithColumn(nameof(AppRelease.Notes)).AsString().Nullable()
             .WithColumn(nameof(AppRelease.Level)).AsInt16().NotNullable();
 
+        Create.Table(DbConstants.AppReleasesLocalized)
+            .WithColumn(nameof(AppReleaseLocalized.ReleaseId)).AsGuid().PrimaryKey().ForeignKey(nameof(DbConstants.AppReleases), nameof(AppRelease.Id))
+            .WithColumn(nameof(AppReleaseLocalized.LanguageId)).AsInt32().PrimaryKey().ForeignKey(nameof(DbConstants.Languages), nameof(Language.Id))
+            .WithColumn(nameof(AppReleaseLocalized.Notes)).AsString().Nullable();
+
         Create.Table(DbConstants.AppInstallers)
             .WithColumn(nameof(AppInstaller.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(AppInstaller.ReleaseId)).AsGuid().NotNullable().ForeignKey(nameof(DbConstants.AppReleases), nameof(AppRelease.Id))
@@ -46,6 +65,12 @@ public sealed class Initial : Migration
             .WithColumn(nameof(AppInstaller.Description)).AsString().Nullable()
             .WithColumn(nameof(AppInstaller.Size)).AsInt64().NotNullable()
             .WithColumn(nameof(AppInstaller.AdditionalSize)).AsInt64().Nullable();
+
+        Create.Table(DbConstants.AppInstallersLocalized)
+            .WithColumn(nameof(AppInstallerLocalized.InstallerId)).AsGuid().PrimaryKey().ForeignKey(nameof(DbConstants.AppInstallers), nameof(AppInstaller.Id))
+            .WithColumn(nameof(AppInstallerLocalized.LanguageId)).AsInt32().PrimaryKey().ForeignKey(nameof(DbConstants.Languages), nameof(Language.Id))
+            .WithColumn(nameof(AppInstallerLocalized.Title)).AsString().Nullable()
+            .WithColumn(nameof(AppInstallerLocalized.Description)).AsString().Nullable();
 
         Create.Table(DbConstants.AppRuns)
             .WithColumn(nameof(AppRun.Id)).AsInt32().PrimaryKey().Identity()

@@ -13,5 +13,10 @@ public enum WellKnownAppRegistryServiceErrorCode
     /// <summary>
     /// Application release not found.
     /// </summary>
-    AppReleaseNotFound
+    AppReleaseNotFound,
+
+    /// <summary>
+    /// Language not found.
+    /// </summary>
+    LanguageNotFound,
 }

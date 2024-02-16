@@ -15,15 +15,18 @@ public interface IAppsService
         Guid appId,
         int from,
         int count,
+        string language = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default);
 
     Task<(AppRelease, AppInstaller)[]> GetAppInstallersAsync(
         Guid appId,
+        string language = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default);
 
     Task<(AppRelease, AppInstaller)> GetAppLatestInstallerAsync(
         Guid appId,
         Version? osVersion,
+        string language = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default);
 
     Task PostAppUsageAsync(

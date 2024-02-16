@@ -58,6 +58,12 @@ internal abstract class TestsBase
     [OneTimeSetUp]
     public async Task SetUp()
     {
+        await DbConnection.Languages.InsertAsync(() => new Database.Models.Language
+        {
+            Id = 0,
+            Code = "ru-RU"
+        });
+
         await DbConnection.Families.InsertAsync(() => new Database.Models.AppFamily
         {
             Id = FamilyId,
@@ -74,18 +80,32 @@ internal abstract class TestsBase
             LogoUri = "http://test2.logo"
         });
 
+        await DbConnection.FamiliesLocalized.InsertAsync(() => new Database.Models.AppFamilyLocalized
+        {
+            FamilyId = FamilyId2,
+            LanguageId = 0,
+            Description = "Тестовое описание 2",
+        });
+
         await DbConnection.Apps.InsertAsync(() => new Database.Models.App
         {
-            AppFamilyId = FamilyId,
+            FamilyId = FamilyId,
             Id = AppId,
             Name = "App " + AppId
         });
 
         await DbConnection.Apps.InsertAsync(() => new Database.Models.App
         {
-            AppFamilyId = FamilyId,
+            FamilyId = FamilyId,
             Id = AppId2,
             Name = "App " + AppId2
+        });
+
+        await DbConnection.AppsLocalized.InsertAsync(() => new Database.Models.AppLocalized
+        {
+            AppId = AppId,
+            LanguageId = 0,
+            KnownIssues = "Решение проблем"
         });
 
         await DbConnection.Screenshots.InsertAsync(() => new Database.Models.AppScreenshot
@@ -105,15 +125,32 @@ internal abstract class TestsBase
             Notes = "notes"
         });
 
+        await DbConnection.ReleasesLocalized.InsertAsync(() => new Database.Models.AppReleaseLocalized
+        {
+            ReleaseId = ReleaseId,
+            LanguageId = 0,
+            Notes = "заметки"
+        });
+
+        var installerId = Guid.NewGuid();
+
         await DbConnection.Installers.InsertAsync(() => new Database.Models.AppInstaller
         {
-            Id = Guid.NewGuid(),
+            Id = installerId,
             ReleaseId = ReleaseId,
             Size = 100,
             AdditionalSize = 200,
             Title = "Title",
             Description = "Description",
             Uri = "http://uri"
+        });
+
+        await DbConnection.InstallersLocalized.InsertAsync(() => new Database.Models.AppInstallerLocalized
+        {
+            InstallerId = installerId,
+            LanguageId = 0,
+            Title = "Заголовок",
+            Description = "Описание",
         });
     }
 
@@ -122,10 +159,15 @@ internal abstract class TestsBase
     {
         await DbConnection.Errors.DeleteAsync();
         await DbConnection.Runs.DeleteAsync();
+        await DbConnection.InstallersLocalized.DeleteAsync();
         await DbConnection.Installers.DeleteAsync();
+        await DbConnection.ReleasesLocalized.DeleteAsync();
         await DbConnection.Releases.DeleteAsync();
         await DbConnection.Screenshots.DeleteAsync();
+        await DbConnection.AppsLocalized.DeleteAsync();
         await DbConnection.Apps.DeleteAsync();
+        await DbConnection.FamiliesLocalized.DeleteAsync();
         await DbConnection.Families.DeleteAsync();
+        await DbConnection.Languages.DeleteAsync();
     }
 }

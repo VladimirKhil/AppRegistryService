@@ -2,6 +2,8 @@
 using AppRegistryService.Contract.Requests;
 using AppRegistryService.Contract.Responses;
 using AppRegistryService.Contracts;
+using AppRegistryService.Helpers;
+using AppRegistryService.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,18 +36,20 @@ public sealed class AppsController : ControllerBase
         Guid appId,
         int from,
         int count,
+        [FromHeader(Name = "Accept-Language")] string acceptLanguage = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default)
     {
-        var (releases, total) = await _appsService.GetAppReleasesPageAsync(appId, from, count, cancellationToken);
+        var (releases, total) = await _appsService.GetAppReleasesPageAsync(appId, from, count, CultureHelper.GetLanguageFromAcceptLanguageHeader(acceptLanguage), cancellationToken);
         return new ResultsPage<AppReleaseInfo> { Results = _mapper.Map<AppReleaseInfo[]>(releases), Total = total };
     }
 
     [HttpGet("{appId}/installers")]
     public async Task<AppInstallerReleaseInfoResponse[]> GetAppInstallersAsync(
         Guid appId,
+        [FromHeader(Name = "Accept-Language")] string acceptLanguage = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default)
     {
-        var result = await _appsService.GetAppInstallersAsync(appId, cancellationToken);
+        var result = await _appsService.GetAppInstallersAsync(appId, CultureHelper.GetLanguageFromAcceptLanguageHeader(acceptLanguage), cancellationToken);
 
         return result
             .Select(r => new AppInstallerReleaseInfoResponse
@@ -60,9 +64,10 @@ public sealed class AppsController : ControllerBase
     public async Task<AppInstallerReleaseInfoResponse> GetAppLatestInstallerAsync(
         Guid appId,
         Version? osVersion,
+        [FromHeader(Name = "Accept-Language")] string acceptLanguage = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default)
     {
-        var (release, installer) = await _appsService.GetAppLatestInstallerAsync(appId, osVersion, cancellationToken);
+        var (release, installer) = await _appsService.GetAppLatestInstallerAsync(appId, osVersion, CultureHelper.GetLanguageFromAcceptLanguageHeader(acceptLanguage), cancellationToken);
 
         return new AppInstallerReleaseInfoResponse
         {
@@ -75,10 +80,11 @@ public sealed class AppsController : ControllerBase
     public async Task<AppInstallerReleaseInfoResponse> PostAppUsageAsync(
         Guid appId,
         AppUsageInfo appUsageInfo,
+        [FromHeader(Name = "Accept-Language")] string acceptLanguage = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default)
     {
         await _appsService.PostAppUsageAsync(appId, appUsageInfo.AppVersion, appUsageInfo.OSVersion, appUsageInfo.OSArchitecture, cancellationToken);
-        var (release, installer) = await _appsService.GetAppLatestInstallerAsync(appId, appUsageInfo.OSVersion, cancellationToken);
+        var (release, installer) = await _appsService.GetAppLatestInstallerAsync(appId, appUsageInfo.OSVersion, CultureHelper.GetLanguageFromAcceptLanguageHeader(acceptLanguage), cancellationToken);
 
         return new AppInstallerReleaseInfoResponse
         {

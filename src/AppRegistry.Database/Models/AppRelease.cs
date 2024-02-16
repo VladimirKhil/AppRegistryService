@@ -28,7 +28,7 @@ public sealed class AppRelease
     public int Version { get; set; }
 
     /// <summary>
-    /// Mimumim supported operating system version.
+    /// Minimum supported operating system version.
     /// </summary>
     [Column(DataType = DataType.Int32), NotNull]
     public int MinimumOSVersion { get; set; }

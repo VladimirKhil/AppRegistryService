@@ -20,7 +20,7 @@ public sealed class AppFamily
     /// Application family name.
     /// </summary>
     [Column(DataType = DataType.NVarChar), NotNull]
-    public string? Name { get; set; }
+    public string Name { get; set; } = "";
 
     /// <summary>
     /// Application family description.

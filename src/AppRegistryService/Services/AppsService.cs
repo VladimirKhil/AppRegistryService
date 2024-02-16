@@ -41,21 +41,25 @@ public sealed class AppsService : IAppsService
         return (errors.Select(e => new AppErrorWithVersion(e.Error, e.Version)).ToArray(), total);
     }
 
-    public async Task<(AppRelease, AppInstaller)[]> GetAppInstallersAsync(Guid appId, CancellationToken cancellationToken = default)
+    public async Task<(AppRelease, AppInstaller)[]> GetAppInstallersAsync(Guid appId, string language, CancellationToken cancellationToken = default)
     {
         var query = from r in _connection.Releases
                     where r.AppId == appId
                     from i in _connection.Installers
                     where i.ReleaseId == r.Id
+                    from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
+                    from rl in _connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
+                    from il in _connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
                     orderby r.PublishDate descending
-                    select new { Release = r, Installer = i };
+                    select new { Release = Localize(r, rl), Installer = Localize(i, il) };
 
         var result = await query.ToArrayAsync(cancellationToken);
 
         return result.Select(r => (r.Release, r.Installer)).ToArray();
     }
 
-    public async Task<(AppRelease, AppInstaller)> GetAppLatestInstallerAsync(Guid appId, Version? osVersion, CancellationToken cancellationToken = default)
+
+    public async Task<(AppRelease, AppInstaller)> GetAppLatestInstallerAsync(Guid appId, Version? osVersion, string language, CancellationToken cancellationToken = default)
     {
         var versionValue = osVersion == null ? int.MaxValue : osVersion.ToInt();
 
@@ -63,8 +67,11 @@ public sealed class AppsService : IAppsService
                     where r.AppId == appId
                     from i in _connection.Installers
                     where i.ReleaseId == r.Id && r.MinimumOSVersion <= versionValue
+                    from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
+                    from rl in _connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
+                    from il in _connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
                     orderby r.PublishDate descending
-                    select new { Release = r, Installer = i };
+                    select new { Release = Localize(r, rl), Installer = Localize(i, il) };
 
         var result = await query.FirstOrDefaultAsync(cancellationToken);
 
@@ -73,14 +80,21 @@ public sealed class AppsService : IAppsService
             : (result.Release, result.Installer);
     }
 
-    public async Task<(AppRelease[], int)> GetAppReleasesPageAsync(Guid appId, int from, int count, CancellationToken cancellationToken = default)
+    public async Task<(AppRelease[], int)> GetAppReleasesPageAsync(Guid appId, int from, int count, string language, CancellationToken cancellationToken = default)
     {
         var query = from r in _connection.Releases
                     where r.AppId == appId
+                    from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
+                    from rl in _connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
                     orderby r.PublishDate descending
-                    select r;
+                    select new { Release = r, Localization = rl };
 
-        var releases = await query.Skip(from).Take(count).ToArrayAsync(cancellationToken);
+        var releases = await query
+            .Skip(from)
+            .Take(count)
+            .Select(r => Localize(r.Release, r.Localization))
+            .ToArrayAsync(cancellationToken);
+
         var total = await query.CountAsync(cancellationToken);
 
         return (releases, total);
@@ -160,6 +174,23 @@ public sealed class AppsService : IAppsService
             },
             cancellationToken);
 
+        if (parameters.LocalizedNotes != null)
+        {
+            foreach (var note in parameters.LocalizedNotes)
+            {
+                var language = await _connection.Languages.FirstOrDefaultAsync(l => l.Code == note.Key, cancellationToken)
+                    ?? throw new ServiceException(Contract.Models.WellKnownAppRegistryServiceErrorCode.AppFamilyNotFound, HttpStatusCode.FailedDependency);
+
+                await _connection.ReleasesLocalized.InsertAsync(() => new AppReleaseLocalized
+                {
+                    ReleaseId = releaseId,
+                    LanguageId = language.Id,
+                    Notes = note.Value,
+                },
+                cancellationToken);
+            }
+        }
+
         return releaseId;
     }
 
@@ -217,4 +248,30 @@ public sealed class AppsService : IAppsService
 
         return error.Status;
     }
+
+    private static AppRelease Localize(AppRelease release, AppReleaseLocalized? localization) => localization == null
+        ? release
+        : new AppRelease
+        {
+            Id = release.Id,
+            AppId = release.AppId,
+            Level = release.Level,
+            MinimumOSVersion = release.MinimumOSVersion,
+            PublishDate = release.PublishDate,
+            Version = release.Version,
+            Notes = localization.Notes
+        };
+
+    private static AppInstaller Localize(AppInstaller installer, AppInstallerLocalized? localization) => localization == null
+        ? installer
+        : new AppInstaller
+        {
+            Id = installer.Id,
+            AdditionalSize = installer.AdditionalSize,
+            Description = localization.Description,
+            ReleaseId = installer.ReleaseId,
+            Size = installer.Size,
+            Title = localization.Title,
+            Uri = installer.Uri
+        };
 }

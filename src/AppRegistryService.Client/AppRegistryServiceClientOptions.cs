@@ -28,4 +28,9 @@ public sealed class AppRegistryServiceClientOptions
     /// Client timeout.
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(300);
+
+    /// <summary>
+    /// Requests localization culture.
+    /// </summary>
+    public string? Culture { get; set; }
 }

@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace AppRegistryService.Client;
 
@@ -37,6 +39,13 @@ public static class ServiceCollectionExtensions
                     client.BaseAddress = serviceUri != null ? new Uri(serviceUri, "api/v1/") : null;
                     client.Timeout = options.Timeout;
                     client.DefaultRequestVersion = HttpVersion.Version20;
+
+                    if (options.Culture != null)
+                    {
+                        client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue(options.Culture));
+                    }
+
+                    SetAuthSecret(options, client);
                 })
             .AddPolicyHandler(HttpPolicyExtensions
                 .HandleTransientHttpError()
@@ -50,5 +59,16 @@ public static class ServiceCollectionExtensions
         }
 
         return services;
+    }
+
+    private static void SetAuthSecret(AppRegistryServiceClientOptions options, HttpClient client)
+    {
+        if (options.ClientSecret == null)
+        {
+            return;
+        }
+
+        var authHeader = Convert.ToBase64String(Encoding.ASCII.GetBytes($"admin:{options.ClientSecret}"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
     }
 }

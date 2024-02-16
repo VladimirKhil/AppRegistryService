@@ -4,28 +4,22 @@ using LinqToDB.Mapping;
 namespace AppRegistry.Database.Models;
 
 /// <summary>
-/// Defines an application.
+/// Defines an localized application.
 /// </summary>
-[Table(Schema = DbConstants.Schema, Name = DbConstants.Apps)]
-public sealed class App
+[Table(Schema = DbConstants.Schema, Name = DbConstants.AppsLocalized)]
+public sealed class AppLocalized
 {
     /// <summary>
     /// Application unique identifier.
     /// </summary>
     [PrimaryKey, Column(DataType = DataType.Guid), NotNull]
-    public Guid Id { get; set; }
+    public Guid AppId { get; set; }
 
     /// <summary>
-    /// Application family identifier link.
+    /// Language id.
     /// </summary>
-    [Column(DataType = DataType.Guid), NotNull]
-    public Guid FamilyId { get; set; }
-
-    /// <summary>
-    /// Application name.
-    /// </summary>
-    [Column(DataType = DataType.NVarChar), NotNull]
-    public string? Name { get; set; }
+    [PrimaryKey, Column(DataType = DataType.Int32), NotNull]
+    public int LanguageId { get; set; }
 
     /// <summary>
     /// Application known issues info.
