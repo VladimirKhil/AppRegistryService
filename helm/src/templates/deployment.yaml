@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "appregistry.fullname" . }}
+  labels:
+    {{- include "appregistry.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "appregistry.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "appregistry.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: log
+          {{- if .Values.logPath }}
+          hostPath:
+            path: '{{- toYaml .Values.logPath }}'
+            type: Directory
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: DBPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: '{{ .Values.database.passwordKey }}'
+                  key: '{{ .Values.database.passwordValue }}'
+            - name: ConnectionStrings__AppRegistry
+              value: 'Host={{ .Values.database.host }};Username={{ .Values.database.user }};Password=$(DBPASSWORD);Database={{ .Values.database.name }}'
+          volumeMounts:
+          - name: log
+            mountPath: /app/logs
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

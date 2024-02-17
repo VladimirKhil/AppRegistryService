@@ -12,9 +12,17 @@ internal sealed class AppsTests : TestsBase
     public async Task SetUp()
     {
         var families = await FamiliesApi.GetFamiliesAsync();
-        var apps = await FamiliesApi.GetFamilyAppsAsync(families![0].Id);
 
-        _appId = apps![0].Id;
+        for (var i = 0; i < families!.Length; i++)
+        {
+            var apps = await FamiliesApi.GetFamilyAppsAsync(families![i].Id);
+
+            if (apps != null && apps.Length > 0)
+            {
+                _appId = apps![0].Id;
+                break;
+            }
+        }
     }
 
     [Test]

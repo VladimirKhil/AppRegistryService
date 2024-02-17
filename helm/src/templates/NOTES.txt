@@ -1,0 +1,1 @@
+AppRegistry service is up and ready.

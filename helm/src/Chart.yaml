@@ -1,0 +1,6 @@
+apiVersion: v2
+name: src
+description: A service for storing app releases, installers, runs and errors info
+type: application
+version: 1.0.0
+appVersion: 1.0.0
