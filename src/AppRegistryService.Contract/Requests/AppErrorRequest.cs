@@ -18,5 +18,10 @@ public sealed record AppErrorRequest(Version Version, Version OSVersion, Archite
     /// <summary>
     /// Error text.
     /// </summary>
-    public string? ErrorMessage { get; set; }
+    public string ErrorMessage { get; set; } = "";
+
+    /// <summary>
+    /// User notes.
+    /// </summary>
+    public string? UserNotes { get; set; }
 }

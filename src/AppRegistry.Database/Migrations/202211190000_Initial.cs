@@ -87,6 +87,7 @@ public sealed class Initial : Migration
             .WithColumn(nameof(AppError.OSArhitecture)).AsInt16().Nullable()
             .WithColumn(nameof(AppError.Time)).AsDateTime2().NotNullable()
             .WithColumn(nameof(AppError.Message)).AsString().NotNullable()
+            .WithColumn(nameof(AppError.UserNotes)).AsString().Nullable()
             .WithColumn(nameof(AppError.Status)).AsInt16().NotNullable()
             .WithColumn(nameof(AppError.Count)).AsInt32().NotNullable();
 

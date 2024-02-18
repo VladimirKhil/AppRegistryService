@@ -213,20 +213,22 @@ public sealed class AppsService : IAppsService
                 ReleaseId = release.Id,
                 Time = appErrorInfo.ErrorTime,
                 Message = appErrorInfo.ErrorMessage,
+                UserNotes = appErrorInfo.UserNotes,
                 OSVersion = osVersion,
                 OSArhitecture = appErrorInfo.OSArchitecture,
                 Status = ErrorStatus.NotFixed,
                 Count = 1
             },
-            relation => new AppError
+            error => new AppError
             {
                 ReleaseId = release.Id,
-                Time = relation.Status == ErrorStatus.Fixed ? relation.Time : appErrorInfo.ErrorTime,
+                Time = error.Status == ErrorStatus.Fixed ? error.Time : appErrorInfo.ErrorTime,
                 Message = appErrorInfo.ErrorMessage,
+                UserNotes = error.UserNotes,
                 OSVersion = osVersion,
                 OSArhitecture = appErrorInfo.OSArchitecture,
-                Status = relation.Status,
-                Count = relation.Count + 1,
+                Status = error.Status,
+                Count = error.Count + 1,
             },
             () => new AppError
             {

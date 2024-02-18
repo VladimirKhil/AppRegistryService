@@ -44,7 +44,13 @@ public sealed class AppError
     /// Error text.
     /// </summary>
     [Column(DataType = DataType.NVarChar), NotNull]
-    public string? Message { get; set; }
+    public string Message { get; set; } = "";
+
+    /// <summary>
+    /// User notes for error.
+    /// </summary>
+    [Column(DataType = DataType.NVarChar), Nullable]
+    public string? UserNotes { get; set; }
 
     /// <summary>
     /// Current error fix status.
