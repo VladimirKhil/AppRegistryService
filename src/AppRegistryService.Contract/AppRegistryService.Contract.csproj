@@ -7,12 +7,29 @@
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
 	<Company>Khil-soft</Company>
-	<Copyright>Copyright © Khil-soft 2022</Copyright>
+	<Copyright>Copyright © Khil-soft 2024</Copyright>
+	<PackageProjectUrl>https://github.com/VladimirKhil/AppRegistryService</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/VladimirKhil/AppRegistryService</RepositoryUrl>
+	<PackageTags>AppRegistry</PackageTags>
+	<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<PackageId>VKhil.AppRegistry.Contract</PackageId>
   </PropertyGroup>
 	
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+		<None Include="..\..\README.md">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>
