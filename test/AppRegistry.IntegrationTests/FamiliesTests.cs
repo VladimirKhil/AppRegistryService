@@ -14,6 +14,6 @@ internal sealed class FamiliesTests : TestsBase
 
         Assert.That(apps, Is.Not.Null);
         Assert.That(apps, Has.Length.GreaterThanOrEqualTo(1));
-        Assert.That(apps.Select(a => a.AppFamilyId), Is.All.EqualTo(families[0].Id));
+        Assert.That(apps.Select(a => a.FamilyId), Is.All.EqualTo(families[0].Id));
     }
 }

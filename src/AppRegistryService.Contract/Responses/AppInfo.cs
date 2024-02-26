@@ -13,7 +13,12 @@ public sealed class AppInfo
     /// <summary>
     /// Application family identifier link.
     /// </summary>
-    public Guid AppFamilyId { get; set; }
+    public Guid FamilyId { get; set; }
+
+    /// <summary>
+    /// Application name.
+    /// </summary>
+    public string? Name { get; set; }
 
     /// <summary>
     /// Application known issues info.

@@ -2,8 +2,18 @@ apiVersion: v1
 entries:
   appregistry:
   - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2024-02-26T21:37:54.2301792+01:00"
+    description: A service for storing app releases, installers, runs and errors info
+    digest: ad6994cc5f82dcd6c4a8971d60463c533247ee3d846094b9eeaadd8ffc4e015b
+    name: appregistry
+    type: application
+    urls:
+    - appregistry-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-02-22T21:50:15.8396424+01:00"
+    created: "2024-02-26T21:37:54.2296284+01:00"
     description: A service for storing app releases, installers, runs and errors info
     digest: 69cfc88273370554e69e6e776ab1036a358b21de4cc050d3f0b666864bdad852
     name: appregistry
@@ -11,4 +21,4 @@ entries:
     urls:
     - appregistry-1.0.0.tgz
     version: 1.0.0
-generated: "2024-02-22T21:50:15.8366264+01:00"
+generated: "2024-02-26T21:37:54.2183883+01:00"
