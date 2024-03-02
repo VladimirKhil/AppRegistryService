@@ -7,6 +7,7 @@ namespace AppRegistry.IntegrationTests;
 internal sealed class AppsTests : TestsBase
 {
     private Guid _appId;
+    private Guid _appId2;
 
     [SetUp]
     public async Task SetUp()
@@ -19,7 +20,13 @@ internal sealed class AppsTests : TestsBase
 
             if (apps != null && apps.Length > 0)
             {
-                _appId = apps![0].Id;
+                _appId = apps[0].Id;
+
+                if (apps.Length > 2)
+                {
+                    _appId2 = apps[2].Id;
+                }
+
                 break;
             }
         }
@@ -97,6 +104,52 @@ internal sealed class AppsTests : TestsBase
         {
             Assert.That(release!.AppId, Is.EqualTo(_appId));
             Assert.That(installer!.ReleaseId, Is.EqualTo(release.Id));
+        });
+    }
+
+    [Test]
+    public async Task UpdateInstaller_Ok()
+    {
+        var response = await Apps.GetAppLatestInstallerAsync(_appId2, new Version(20, 0));
+
+        Assert.That(response, Is.Not.Null);
+
+        var release = response.Release;
+        var installer = response.Installer;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(release, Is.Not.Null);
+            Assert.That(installer, Is.Not.Null);
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(release!.AppId, Is.EqualTo(_appId2));
+            Assert.That(installer!.ReleaseId, Is.EqualTo(release.Id));
+        });
+
+        var newUri = "http://" + Random.Shared.NextDouble().ToString();
+        await Admin.UpdateInstallerAsync(installer!.Id, new UpdateInstallerRequest(release!.Id, newUri));
+
+        var response2 = await Apps.GetAppLatestInstallerAsync(_appId2, new Version(20, 0));
+
+        Assert.That(response2, Is.Not.Null);
+
+        var release2 = response2.Release;
+        var installer2 = response2.Installer;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(release2, Is.Not.Null);
+            Assert.That(installer2, Is.Not.Null);
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(release2!.AppId, Is.EqualTo(_appId2));
+            Assert.That(installer2!.ReleaseId, Is.EqualTo(release2.Id));
+            Assert.That(installer2!.Uri, Is.EqualTo(new Uri(newUri)));
         });
     }
 

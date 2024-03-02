@@ -27,7 +27,13 @@ internal abstract class TestsBase
 
     protected Guid AppId2 { get; } = Guid.NewGuid();
 
+    protected Guid AppId3 { get; } = Guid.NewGuid();
+
     protected Guid ReleaseId { get; } = Guid.NewGuid();
+
+    protected Guid ReleaseId3 { get; } = Guid.NewGuid();
+
+    protected Guid InstallerId3 { get; } = Guid.NewGuid();
 
     public TestsBase()
     {
@@ -101,6 +107,13 @@ internal abstract class TestsBase
             Name = "App " + AppId2
         });
 
+        await DbConnection.Apps.InsertAsync(() => new Database.Models.App
+        {
+            FamilyId = FamilyId,
+            Id = AppId3,
+            Name = "App " + AppId3
+        });
+
         await DbConnection.AppsLocalized.InsertAsync(() => new Database.Models.AppLocalized
         {
             AppId = AppId,
@@ -132,6 +145,17 @@ internal abstract class TestsBase
             Notes = "заметки"
         });
 
+        await DbConnection.Releases.InsertAsync(() => new Database.Models.AppRelease
+        {
+            Id = ReleaseId3,
+            AppId = AppId3,
+            Version = 1_000_000,
+            MinimumOSVersion = 10_000_000,
+            Level = Database.Models.ReleaseLevel.Major,
+            PublishDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            Notes = "notes"
+        });
+
         var installerId = Guid.NewGuid();
 
         await DbConnection.Installers.InsertAsync(() => new Database.Models.AppInstaller
@@ -151,6 +175,17 @@ internal abstract class TestsBase
             LanguageId = 0,
             Title = "Заголовок",
             Description = "Описание",
+        });
+
+        await DbConnection.Installers.InsertAsync(() => new Database.Models.AppInstaller
+        {
+            Id = InstallerId3,
+            ReleaseId = ReleaseId3,
+            Size = 100,
+            AdditionalSize = 200,
+            Title = "Title",
+            Description = "Description",
+            Uri = "http://uri"
         });
     }
 

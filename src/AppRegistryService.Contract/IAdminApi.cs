@@ -1,4 +1,5 @@
-﻿using AppRegistryService.Contract.Requests;
+﻿using AppRegistryService.Contract.Models;
+using AppRegistryService.Contract.Requests;
 using AppRegistryService.Contract.Responses;
 
 namespace AppRegistryService.Contract;
@@ -42,6 +43,38 @@ public interface IAdminApi
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Published release identifier.</returns>
     Task<PublishAppReleaseResponse?> PublishAppReleaseAsync(Guid appId, AppReleaseRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Posts application usage info and receives latest installer info for this application.
+    /// </summary>
+    /// <param name="appId">Application identifier.</param>
+    /// <param name="appUsageInfo">Application usage info.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Installer and corresponding release info.</returns>
+    Task<AppInstallerReleaseInfoResponse?> PostAppUsageAsync(
+        Guid appId,
+        AppUsageInfo appUsageInfo,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates application installer.
+    /// </summary>
+    /// <param name="installerId">Installer identifier.</param>
+    /// <param name="updateInstallerRequest">Update request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task UpdateInstallerAsync(Guid installerId, UpdateInstallerRequest updateInstallerRequest, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends application error information.
+    /// </summary>
+    /// <param name="appId">Application identifier.</param>
+    /// <param name="appErrorRequest">Application error information.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Object containing the current status of this error.</returns>
+    Task<ErrorStatus?> SendAppErrorReportAsync(
+        Guid appId,
+        AppErrorRequest appErrorRequest,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Marks errors as resolved by latest app release.

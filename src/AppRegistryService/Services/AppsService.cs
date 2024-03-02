@@ -59,7 +59,11 @@ public sealed class AppsService : IAppsService
     }
 
 
-    public async Task<(AppRelease, AppInstaller)> GetAppLatestInstallerAsync(Guid appId, Version? osVersion, string language, CancellationToken cancellationToken = default)
+    public async Task<(AppRelease, AppInstaller)> GetAppLatestInstallerAsync(
+        Guid appId,
+        Version? osVersion,
+        string language,
+        CancellationToken cancellationToken = default)
     {
         var versionValue = osVersion == null ? int.MaxValue : osVersion.ToInt();
 
@@ -80,7 +84,12 @@ public sealed class AppsService : IAppsService
             : (result.Release, result.Installer);
     }
 
-    public async Task<(AppRelease[], int)> GetAppReleasesPageAsync(Guid appId, int from, int count, string language, CancellationToken cancellationToken = default)
+    public async Task<(AppRelease[], int)> GetAppReleasesPageAsync(
+        Guid appId,
+        int from,
+        int count,
+        string language,
+        CancellationToken cancellationToken = default)
     {
         var query = from r in _connection.Releases
                     where r.AppId == appId
@@ -133,7 +142,7 @@ public sealed class AppsService : IAppsService
             {
                 ReleaseId = release.Id,
                 OSVersion = osVersionValue,
-                OSArhitecture = osArchitecture,
+                OSArchitecture = osArchitecture,
                 Date = today,
                 Count = 1,
             },
@@ -141,7 +150,7 @@ public sealed class AppsService : IAppsService
             {
                 ReleaseId = release.Id,
                 OSVersion = osVersionValue,
-                OSArhitecture = osArchitecture,
+                OSArchitecture = osArchitecture,
                 Date = today,
                 Count = appRun.Count + 1,
             },
@@ -149,7 +158,7 @@ public sealed class AppsService : IAppsService
             {
                 ReleaseId = release.Id,
                 OSVersion = osVersionValue,
-                OSArhitecture = osArchitecture,
+                OSArchitecture = osArchitecture,
                 Date = today
             },
             cancellationToken);
@@ -179,7 +188,9 @@ public sealed class AppsService : IAppsService
             foreach (var note in parameters.LocalizedNotes)
             {
                 var language = await _connection.Languages.FirstOrDefaultAsync(l => l.Code == note.Key, cancellationToken)
-                    ?? throw new ServiceException(Contract.Models.WellKnownAppRegistryServiceErrorCode.AppFamilyNotFound, HttpStatusCode.FailedDependency);
+                    ?? throw new ServiceException(
+                        Contract.Models.WellKnownAppRegistryServiceErrorCode.LanguageNotFound,
+                        HttpStatusCode.FailedDependency);
 
                 await _connection.ReleasesLocalized.InsertAsync(() => new AppReleaseLocalized
                 {
@@ -193,6 +204,9 @@ public sealed class AppsService : IAppsService
 
         return releaseId;
     }
+
+    public async Task UpdateInstallerAsync(Guid installerId, Guid newReleaseId, Uri newUri, CancellationToken cancellationToken = default) =>
+        await _connection.Installers.Where(i => i.Id == installerId).Set(i => i.ReleaseId, newReleaseId).Set(i => i.Uri, newUri.ToString()).UpdateAsync(cancellationToken);
 
     public async Task ResolveErrorsAsync(int[] errorIds, CancellationToken cancellationToken = default) =>
         await _connection.Errors.Where(e => errorIds.Contains(e.Id)).Set(e => e.Status, ErrorStatus.Fixed).UpdateAsync(cancellationToken);
@@ -215,7 +229,7 @@ public sealed class AppsService : IAppsService
                 Message = appErrorInfo.ErrorMessage,
                 UserNotes = appErrorInfo.UserNotes,
                 OSVersion = osVersion,
-                OSArhitecture = appErrorInfo.OSArchitecture,
+                OSArchitecture = appErrorInfo.OSArchitecture,
                 Status = ErrorStatus.NotFixed,
                 Count = 1
             },
@@ -226,7 +240,7 @@ public sealed class AppsService : IAppsService
                 Message = appErrorInfo.ErrorMessage,
                 UserNotes = error.UserNotes,
                 OSVersion = osVersion,
-                OSArhitecture = appErrorInfo.OSArchitecture,
+                OSArchitecture = appErrorInfo.OSArchitecture,
                 Status = error.Status,
                 Count = error.Count + 1,
             },
@@ -234,7 +248,7 @@ public sealed class AppsService : IAppsService
             {
                 ReleaseId = release.Id,
                 OSVersion = osVersion,
-                OSArhitecture = appErrorInfo.OSArchitecture,
+                OSArchitecture = appErrorInfo.OSArchitecture,
                 Message = appErrorInfo.ErrorMessage
             },
             cancellationToken);
@@ -244,7 +258,7 @@ public sealed class AppsService : IAppsService
         var error = await _connection.Errors.FirstAsync(
             e => e.ReleaseId == release.Id
                 && e.OSVersion == osVersion
-                && e.OSArhitecture == appErrorInfo.OSArchitecture
+                && e.OSArchitecture == appErrorInfo.OSArchitecture
                 && e.Message == appErrorInfo.ErrorMessage,
             cancellationToken);
 

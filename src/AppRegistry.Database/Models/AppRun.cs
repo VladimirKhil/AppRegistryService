@@ -32,7 +32,7 @@ public sealed class AppRun
     /// Operating system architecture.
     /// </summary>
     [Column(DataType = DataType.Int16), Nullable]
-    public Architecture? OSArhitecture { get; set; }
+    public Architecture? OSArchitecture { get; set; }
     
     /// <summary>
     /// Run date.

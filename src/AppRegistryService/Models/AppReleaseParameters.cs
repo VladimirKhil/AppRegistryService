@@ -10,4 +10,9 @@ namespace AppRegistryService.Models;
 /// <param name="Notes">Release notes.</param>
 /// <param name="Level">Release level.</param>
 /// <param name="LocalizedNotes">Localized release notes.</param>
-public sealed record AppReleaseParameters(Version Version, Version MinimumOSVersion, string Notes, ReleaseLevel Level, Dictionary<string, string>? LocalizedNotes = null);
+public sealed record AppReleaseParameters(
+    Version Version,
+    Version MinimumOSVersion,
+    string Notes,
+    ReleaseLevel Level,
+    Dictionary<string, string>? LocalizedNotes = null);

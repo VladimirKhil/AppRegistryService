@@ -76,7 +76,7 @@ public sealed class Initial : Migration
             .WithColumn(nameof(AppRun.Id)).AsInt32().PrimaryKey().Identity()
             .WithColumn(nameof(AppRun.ReleaseId)).AsGuid().NotNullable().ForeignKey(nameof(DbConstants.AppReleases), nameof(AppRelease.Id))
             .WithColumn(nameof(AppRun.OSVersion)).AsInt32().Nullable()
-            .WithColumn(nameof(AppRun.OSArhitecture)).AsInt16().Nullable()
+            .WithColumn(nameof(AppRun.OSArchitecture)).AsInt16().Nullable()
             .WithColumn(nameof(AppRun.Date)).AsDate().NotNullable()
             .WithColumn(nameof(AppRun.Count)).AsInt32().NotNullable();
 
@@ -84,7 +84,7 @@ public sealed class Initial : Migration
             .WithColumn(nameof(AppError.Id)).AsInt32().PrimaryKey().Identity()
             .WithColumn(nameof(AppError.ReleaseId)).AsGuid().NotNullable().ForeignKey(nameof(DbConstants.AppReleases), nameof(AppRelease.Id))
             .WithColumn(nameof(AppError.OSVersion)).AsInt32().NotNullable()
-            .WithColumn(nameof(AppError.OSArhitecture)).AsInt16().Nullable()
+            .WithColumn(nameof(AppError.OSArchitecture)).AsInt16().Nullable()
             .WithColumn(nameof(AppError.Time)).AsDateTime2().NotNullable()
             .WithColumn(nameof(AppError.Message)).AsString().NotNullable()
             .WithColumn(nameof(AppError.UserNotes)).AsString().Nullable()
@@ -97,11 +97,11 @@ public sealed class Initial : Migration
 
         Create.UniqueConstraint(AppErrorsConstraintName)
             .OnTable(DbConstants.AppErrors)
-            .Columns(nameof(AppError.ReleaseId), nameof(AppError.OSVersion), nameof(AppError.OSArhitecture), nameof(AppError.Message));
+            .Columns(nameof(AppError.ReleaseId), nameof(AppError.OSVersion), nameof(AppError.OSArchitecture), nameof(AppError.Message));
 
         Create.UniqueConstraint(AppRunsConstraintName)
             .OnTable(DbConstants.AppRuns)
-            .Columns(nameof(AppRun.ReleaseId), nameof(AppRun.OSVersion), nameof(AppRun.OSArhitecture), nameof(AppRun.Date));
+            .Columns(nameof(AppRun.ReleaseId), nameof(AppRun.OSVersion), nameof(AppRun.OSArchitecture), nameof(AppRun.Date));
     }
 
     public override void Down()

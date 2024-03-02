@@ -8,6 +8,6 @@ namespace AppRegistryService.Contract.Responses;
 /// <param name="Date">Run date.</param>
 /// <param name="Version">Application version.</param>
 /// <param name="OSVersion">Operating system version.</param>
-/// <param name="OSArhitecture">Operating system architecture.</param>
+/// <param name="OSArchitecture">Operating system architecture.</param>
 /// <param name="Count">Run count.</param>
-public sealed record AppRunInfo(DateOnly Date, Version Version, Version OSVersion, Architecture OSArhitecture, int Count);
+public sealed record AppRunInfo(DateOnly Date, Version Version, Version OSVersion, Architecture OSArchitecture, int Count);

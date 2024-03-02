@@ -32,7 +32,7 @@ public sealed class AppError
     /// Operating system architecture.
     /// </summary>
     [Column(DataType = DataType.Int16), Nullable]
-    public Architecture? OSArhitecture { get; set; }
+    public Architecture? OSArchitecture { get; set; }
 
     /// <summary>
     /// Error first appearance time.

@@ -234,6 +234,54 @@ internal sealed class AppsServiceTests : TestsBase
     }
 
     [Test]
+    public async Task UpdateInstaller_Ok()
+    {
+        var (release, installer) = await AppsService.GetAppLatestInstallerAsync(AppId3, new Version(20, 0));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(release, Is.Not.Null);
+            Assert.That(installer, Is.Not.Null);
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(release.Id, Is.EqualTo(ReleaseId3));
+            Assert.That(release.AppId, Is.EqualTo(AppId3));
+
+            Assert.That(installer.Id, Is.EqualTo(InstallerId3));
+            Assert.That(installer.ReleaseId, Is.EqualTo(ReleaseId3));
+            Assert.That(installer.Uri, Is.EqualTo("http://uri"));
+        });
+
+        var releaseId = await AppsService.PublishAppReleaseAsync(AppId3, new AppRegistryService.Models.AppReleaseParameters(
+            new Version(2, 0),
+            new Version(6, 0),
+            "test notes",
+            ReleaseLevel.Major));
+
+        await AppsService.UpdateInstallerAsync(InstallerId3, releaseId, new Uri("http://new/file.f"));
+
+        var (release2, installer2) = await AppsService.GetAppLatestInstallerAsync(AppId3, new Version(20, 0));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(release2, Is.Not.Null);
+            Assert.That(installer2, Is.Not.Null);
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(release2.Id, Is.EqualTo(releaseId));
+            Assert.That(release2.AppId, Is.EqualTo(AppId3));
+
+            Assert.That(installer2.Id, Is.EqualTo(InstallerId3));
+            Assert.That(installer2.ReleaseId, Is.EqualTo(releaseId));
+            Assert.That(installer2.Uri, Is.EqualTo("http://new/file.f"));
+        });
+    }
+
+    [Test]
     public async Task GetRuns_Ok()
     {
         await AppsService.PostAppUsageAsync(AppId, new Version(1, 0), new Version(12, 0), System.Runtime.InteropServices.Architecture.X64);
@@ -255,7 +303,7 @@ internal sealed class AppsServiceTests : TestsBase
             Assert.That(run.ReleaseId, Is.EqualTo(ReleaseId));
             Assert.That(run.Count, Is.GreaterThanOrEqualTo(1));
             Assert.That(run.OSVersion, Is.EqualTo(12_000_000));
-            Assert.That(run.OSArhitecture, Is.EqualTo(System.Runtime.InteropServices.Architecture.X64));
+            Assert.That(run.OSArchitecture, Is.EqualTo(System.Runtime.InteropServices.Architecture.X64));
             Assert.That(run.Date, Is.EqualTo(today));
         });
     }
@@ -289,7 +337,7 @@ internal sealed class AppsServiceTests : TestsBase
             Assert.That(error.ReleaseId, Is.EqualTo(ReleaseId));
             Assert.That(error.Count, Is.GreaterThanOrEqualTo(1));
             Assert.That(error.OSVersion, Is.EqualTo(12_000_000));
-            Assert.That(error.OSArhitecture, Is.EqualTo(System.Runtime.InteropServices.Architecture.X64));
+            Assert.That(error.OSArchitecture, Is.EqualTo(System.Runtime.InteropServices.Architecture.X64));
             Assert.That(error.Message, Is.EqualTo("test error"));
             Assert.That(error.Time.Subtract(now).TotalSeconds, Is.LessThan(1));
             Assert.That(error.Status, Is.EqualTo(ErrorStatus.NotFixed));

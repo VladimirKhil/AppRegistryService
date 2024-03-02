@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+    <Description>AppRegistryService contract</Description>
 	<Company>Khil-soft</Company>
 	<Copyright>Copyright © Khil-soft 2024</Copyright>
 	<PackageProjectUrl>https://github.com/VladimirKhil/AppRegistryService</PackageProjectUrl>

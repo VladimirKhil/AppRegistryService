@@ -45,5 +45,7 @@ public interface IAppsService
 
     Task<(AppRunWithVersion[], int)> GetAppRunsPageAsync(Guid appId, DateOnly to, int count, CancellationToken cancellationToken = default);
 
+    Task UpdateInstallerAsync(Guid installerId, Guid newReleaseId, Uri newUri, CancellationToken cancellationToken = default);
+
     Task ResolveErrorsAsync(int[] errorIds, CancellationToken cancellationToken = default);
 }

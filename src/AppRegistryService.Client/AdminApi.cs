@@ -1,7 +1,11 @@
 ﻿using AppRegistryService.Contract;
+using AppRegistryService.Contract.Models;
 using AppRegistryService.Contract.Requests;
 using AppRegistryService.Contract.Responses;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AppRegistryService.Client;
 
@@ -34,6 +38,36 @@ internal sealed class AdminApi : IAdminApi
         return releaseResponse;
     }
 
+    public async Task<AppInstallerReleaseInfoResponse?> PostAppUsageAsync(
+        Guid appId,
+        AppUsageInfo appUsageInfo,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await _client.PostAsJsonAsync($"admin/apps/{appId}/usage", appUsageInfo, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
+        }
+
+        var appResponse = await response.Content.ReadFromJsonAsync<AppInstallerReleaseInfoResponse>(cancellationToken: cancellationToken);
+        return appResponse;
+    }
+
+    public async Task<ErrorStatus?> SendAppErrorReportAsync(Guid appId, AppErrorRequest appErrorInfo, CancellationToken cancellationToken = default)
+    {
+        using var response = await _client.PostAsJsonAsync($"admin/apps/{appId}/errors", appErrorInfo, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
+        }
+
+        var errorResponse = await response.Content.ReadFromJsonAsync<SendAppErrorResponse>(cancellationToken: cancellationToken);
+
+        return errorResponse?.ErrorStatus;
+    }
+
     public async Task ResolveErrorsAsync(ResolveErrorsRequest request, CancellationToken cancellationToken = default)
     {
         using var response = await _client.PostAsJsonAsync("admin/errors/resolve", request, cancellationToken);
@@ -42,5 +76,13 @@ internal sealed class AdminApi : IAdminApi
         {
             throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
         }
+    }
+
+    public Task UpdateInstallerAsync(Guid installerId, UpdateInstallerRequest updateInstallerRequest, CancellationToken cancellationToken = default)
+    {
+        var json = JsonSerializer.Serialize(updateInstallerRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        return _client.PatchAsync($"admin/installers/{installerId}", content, cancellationToken);
     }
 }

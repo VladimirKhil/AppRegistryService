@@ -1,4 +1,5 @@
-﻿using AppRegistryService.Contract.Requests;
+﻿using AppRegistryService.Contract.Models;
+using AppRegistryService.Contract.Requests;
 using AppRegistryService.Contract.Responses;
 using AppRegistryService.Contracts;
 using AppRegistryService.Helpers;
@@ -51,6 +52,37 @@ public sealed class AdminController : ControllerBase
         return new PublishAppReleaseResponse(await _appsService.PublishAppReleaseAsync(appId, parameters, cancellationToken));
     }
 
+    [HttpPost("{appId}/usage")]
+    public async Task<AppInstallerReleaseInfoResponse> PostAppUsageAsync(
+        Guid appId,
+        AppUsageInfo appUsageInfo,
+        [FromHeader(Name = "Accept-Language")] string acceptLanguage = Constants.DefaultLanguageCode,
+        CancellationToken cancellationToken = default)
+    {
+        await _appsService.PostAppUsageAsync(appId, appUsageInfo.AppVersion, appUsageInfo.OSVersion, appUsageInfo.OSArchitecture, cancellationToken);
+        var (release, installer) = await _appsService.GetAppLatestInstallerAsync(appId, appUsageInfo.OSVersion, CultureHelper.GetLanguageFromAcceptLanguageHeader(acceptLanguage), cancellationToken);
+
+        return new AppInstallerReleaseInfoResponse
+        {
+            Release = _mapper.Map<AppReleaseInfo>(release),
+            Installer = _mapper.Map<AppInstallerInfo>(installer)
+        };
+    }
+
+    [HttpPost("{appId}/errors")]
+    public async Task<SendAppErrorResponse> SendAppErrorReportAsync(
+        Guid appId,
+        AppErrorRequest appErrorInfo,
+        CancellationToken cancellationToken = default)
+    {
+        var errorStatus = await _appsService.SendAppErrorReportAsync(appId, appErrorInfo, cancellationToken);
+        return new SendAppErrorResponse(_mapper.Map<ErrorStatus>(errorStatus));
+    }
+
+    [HttpPatch("installers/{installerId}")]
+    public Task UpdateInstallerAsync(Guid installerId, UpdateInstallerRequest request, CancellationToken cancellationToken = default) =>
+        _appsService.UpdateInstallerAsync(installerId, request.ReleaseId, new Uri(request.Uri), cancellationToken);
+
     [HttpPost("errors/resolve")]
     public Task ResolveErrorsAsync(ResolveErrorsRequest request, CancellationToken cancellationToken = default) =>
         _appsService.ResolveErrorsAsync(request.ErrorIds, cancellationToken);
@@ -59,7 +91,7 @@ public sealed class AdminController : ControllerBase
         source.Run.Date,
         VersionHelper.CreateVersion(source.Version),
         VersionHelper.CreateVersion(source.Run.OSVersion),
-        source.Run.OSArhitecture ?? Architecture.X64,
+        source.Run.OSArchitecture ?? Architecture.X64,
         source.Run.Count
     );
 
