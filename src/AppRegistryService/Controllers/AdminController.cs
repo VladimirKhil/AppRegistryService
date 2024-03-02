@@ -52,7 +52,7 @@ public sealed class AdminController : ControllerBase
         return new PublishAppReleaseResponse(await _appsService.PublishAppReleaseAsync(appId, parameters, cancellationToken));
     }
 
-    [HttpPost("{appId}/usage")]
+    [HttpPost("apps/{appId}/usage")]
     public async Task<AppInstallerReleaseInfoResponse> PostAppUsageAsync(
         Guid appId,
         AppUsageInfo appUsageInfo,
@@ -69,7 +69,7 @@ public sealed class AdminController : ControllerBase
         };
     }
 
-    [HttpPost("{appId}/errors")]
+    [HttpPost("apps/{appId}/errors")]
     public async Task<SendAppErrorResponse> SendAppErrorReportAsync(
         Guid appId,
         AppErrorRequest appErrorInfo,
@@ -99,8 +99,10 @@ public sealed class AdminController : ControllerBase
         source.Error.Id,
         VersionHelper.CreateVersion(source.Version),
         VersionHelper.CreateVersion(source.Error.OSVersion),
+        source.Error.OSArchitecture,
         source.Error.Time,
         source.Error.Message ?? "",
+        source.Error.UserNotes,
         source.Error.Count
     );
 }
