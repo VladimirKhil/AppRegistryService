@@ -59,8 +59,23 @@ public sealed class AdminController : ControllerBase
         [FromHeader(Name = "Accept-Language")] string acceptLanguage = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default)
     {
-        await _appsService.PostAppUsageAsync(appId, appUsageInfo.AppVersion, appUsageInfo.OSVersion, appUsageInfo.OSArchitecture, cancellationToken);
-        var (release, installer) = await _appsService.GetAppLatestInstallerAsync(appId, appUsageInfo.OSVersion, CultureHelper.GetLanguageFromAcceptLanguageHeader(acceptLanguage), cancellationToken);
+        var (release, installer) = await _appsService.GetAppLatestInstallerAsync(
+            appId,
+            appUsageInfo.OSVersion,
+            CultureHelper.GetLanguageFromAcceptLanguageHeader(acceptLanguage),
+            cancellationToken);
+
+        var appVersion = appUsageInfo.AppVersion;
+
+        if (appVersion.Major == 0 && appVersion.Minor == 0)
+        {
+            if (release != null)
+            {
+                appVersion = VersionHelper.CreateVersion(release.Version);
+            }
+        }
+
+        await _appsService.PostAppUsageAsync(appId, appVersion, appUsageInfo.OSVersion, appUsageInfo.OSArchitecture, cancellationToken);
 
         return new AppInstallerReleaseInfoResponse
         {
