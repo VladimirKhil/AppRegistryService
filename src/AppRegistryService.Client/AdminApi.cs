@@ -5,11 +5,20 @@ using AppRegistryService.Contract.Responses;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AppRegistryService.Client;
 
 internal sealed class AdminApi : IAdminApi
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+        }
+    };
+
     private readonly HttpClient _client;
 
     public AdminApi(HttpClient client) => _client = client;
@@ -30,7 +39,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
+            throw await GetErrorAsync(response, cancellationToken);
         }
 
         var releaseResponse = await response.Content.ReadFromJsonAsync<PublishAppReleaseResponse>(cancellationToken: cancellationToken);
@@ -46,7 +55,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
+            throw await GetErrorAsync(response, cancellationToken);
         }
 
         var appResponse = await response.Content.ReadFromJsonAsync<AppInstallerReleaseInfoResponse>(cancellationToken: cancellationToken);
@@ -59,7 +68,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
+            throw await GetErrorAsync(response, cancellationToken);
         }
 
         var errorResponse = await response.Content.ReadFromJsonAsync<SendAppErrorResponse>(cancellationToken: cancellationToken);
@@ -73,15 +82,54 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
+            throw await GetErrorAsync(response, cancellationToken);
         }
     }
 
-    public Task UpdateInstallerAsync(Guid installerId, UpdateInstallerRequest updateInstallerRequest, CancellationToken cancellationToken = default)
+    public async Task UpdateInstallerAsync(Guid installerId, UpdateInstallerRequest updateInstallerRequest, CancellationToken cancellationToken = default)
     {
         var json = JsonSerializer.Serialize(updateInstallerRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        return _client.PatchAsync($"admin/installers/{installerId}", content, cancellationToken);
+        using var response = await _client.PatchAsync($"admin/installers/{installerId}", content, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw await GetErrorAsync(response, cancellationToken);
+        }
+    }
+
+    public async Task UpdateReleaseAsync(Guid releaseId, UpdateReleaseRequest updateReleaseRequest, CancellationToken cancellationToken = default)
+    {
+        var json = JsonSerializer.Serialize(updateReleaseRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        using var response = await _client.PatchAsync($"admin/releases/{releaseId}", content, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw await GetErrorAsync(response, cancellationToken);
+        }
+    }
+
+    private static async Task<AppRegistryClientException> GetErrorAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        var serverError = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        try
+        {
+            var error = JsonSerializer.Deserialize<AppRegistryServiceError>(serverError, SerializerOptions);
+
+            if (error != null)
+            {
+                return new AppRegistryClientException { ErrorCode = error.ErrorCode, StatusCode = response.StatusCode };
+            }
+        }
+        catch // Invalid JSON or wrong type
+        {
+
+        }
+
+        return new AppRegistryClientException(serverError) { StatusCode = response.StatusCode };
     }
 }

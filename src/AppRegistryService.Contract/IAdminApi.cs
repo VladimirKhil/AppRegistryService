@@ -45,6 +45,14 @@ public interface IAdminApi
     Task<PublishAppReleaseResponse?> PublishAppReleaseAsync(Guid appId, AppReleaseRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Updates application release.
+    /// </summary>
+    /// <param name="releaseId">Release identifier.</param>
+    /// <param name="updateReleaseRequest">Update request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task UpdateReleaseAsync(Guid releaseId, UpdateReleaseRequest updateReleaseRequest, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Posts application usage info and receives latest installer info for this application.
     /// </summary>
     /// <param name="appId">Application identifier.</param>

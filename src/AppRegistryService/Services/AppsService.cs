@@ -205,6 +205,9 @@ public sealed class AppsService : IAppsService
         return releaseId;
     }
 
+    public async Task UpdateReleaseAsync(Guid releaseId, bool isMandatory, CancellationToken cancellationToken) =>
+        await _connection.Releases.Where(r => r.Id == releaseId).Set(r => r.IsMandatory, isMandatory).UpdateAsync(cancellationToken);
+
     public async Task UpdateInstallerAsync(Guid installerId, Guid newReleaseId, Uri newUri, CancellationToken cancellationToken = default) =>
         await _connection.Installers.Where(i => i.Id == installerId).Set(i => i.ReleaseId, newReleaseId).Set(i => i.Uri, newUri.ToString()).UpdateAsync(cancellationToken);
 

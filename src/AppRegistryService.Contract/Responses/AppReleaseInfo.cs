@@ -41,4 +41,9 @@ public sealed class AppReleaseInfo
     /// Release level.
     /// </summary>
     public ReleaseLevel Level { get; set; }
+
+    /// <summary>
+    /// Is this release mandatory.
+    /// </summary>
+    public bool IsMandatory { get; set; }
 }

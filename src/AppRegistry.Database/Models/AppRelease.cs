@@ -50,4 +50,10 @@ public sealed class AppRelease
     /// </summary>
     [Column(DataType = DataType.Int16), NotNull]
     public ReleaseLevel Level { get; set; }
+
+    /// <summary>
+    /// Is this release mandatory.
+    /// </summary>
+    [Column(DataType = DataType.Boolean), NotNull]
+    public bool IsMandatory { get; set; }
 }

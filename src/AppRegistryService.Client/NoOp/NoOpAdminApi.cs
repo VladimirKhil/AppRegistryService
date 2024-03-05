@@ -29,4 +29,7 @@ internal sealed class NoOpAdminApi : IAdminApi
 
     public Task UpdateInstallerAsync(Guid installerId, UpdateInstallerRequest updateInstallerRequest, CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
+
+    public Task UpdateReleaseAsync(Guid releaseId, UpdateReleaseRequest updateReleaseRequest, CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
 }

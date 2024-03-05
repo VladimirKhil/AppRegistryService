@@ -52,6 +52,10 @@ public sealed class AdminController : ControllerBase
         return new PublishAppReleaseResponse(await _appsService.PublishAppReleaseAsync(appId, parameters, cancellationToken));
     }
 
+    [HttpPatch("releases/{releaseId}")]
+    public Task UpdateReleaseAsync(Guid releaseId, UpdateReleaseRequest request, CancellationToken cancellationToken = default) =>
+        _appsService.UpdateReleaseAsync(releaseId, request.IsMandatory, cancellationToken);
+
     [HttpPost("apps/{appId}/usage")]
     public async Task<AppInstallerReleaseInfoResponse> PostAppUsageAsync(
         Guid appId,

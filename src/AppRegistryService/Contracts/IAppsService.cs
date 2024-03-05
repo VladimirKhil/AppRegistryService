@@ -11,6 +11,8 @@ public interface IAppsService
 
     Task<Guid> PublishAppReleaseAsync(Guid appId, AppReleaseParameters parameters, CancellationToken cancellationToken = default);
 
+    Task UpdateReleaseAsync(Guid releaseId, bool isMandatory, CancellationToken cancellationToken);
+
     Task<(AppRelease[] Releases, int Total)> GetAppReleasesPageAsync(
         Guid appId,
         int from,
