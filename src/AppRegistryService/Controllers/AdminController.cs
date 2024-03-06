@@ -79,7 +79,7 @@ public sealed class AdminController : ControllerBase
             }
         }
 
-        await _appsService.PostAppUsageAsync(appId, appVersion, appUsageInfo.OSVersion, appUsageInfo.OSArchitecture, cancellationToken);
+        await _appsService.TryPostAppUsageAsync(appId, appVersion, appUsageInfo.OSVersion, appUsageInfo.OSArchitecture, cancellationToken);
 
         return new AppInstallerReleaseInfoResponse
         {
@@ -109,7 +109,7 @@ public sealed class AdminController : ControllerBase
     private static AppRunInfo ConvertToRunInfo(AppRunWithVersion source) => new(
         source.Run.Date,
         VersionHelper.CreateVersion(source.Version),
-        VersionHelper.CreateVersion(source.Run.OSVersion),
+        VersionHelper.CreateOSVersion(source.Run.OSVersion),
         source.Run.OSArchitecture ?? Architecture.X64,
         source.Run.Count
     );
@@ -117,7 +117,7 @@ public sealed class AdminController : ControllerBase
     private static AppErrorInfo ConvertToErrorInfo(AppErrorWithVersion source) => new(
         source.Error.Id,
         VersionHelper.CreateVersion(source.Version),
-        VersionHelper.CreateVersion(source.Error.OSVersion),
+        VersionHelper.CreateOSVersion(source.Error.OSVersion),
         source.Error.OSArchitecture,
         source.Error.Time,
         source.Error.Message ?? "",

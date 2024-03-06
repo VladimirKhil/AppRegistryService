@@ -1,24 +1,16 @@
-﻿using AppRegistryService.Contract;
+﻿using AppRegistryService.Client.Helpers;
+using AppRegistryService.Contract;
 using AppRegistryService.Contract.Models;
 using AppRegistryService.Contract.Requests;
 using AppRegistryService.Contract.Responses;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace AppRegistryService.Client;
 
 internal sealed class AdminApi : IAdminApi
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        Converters =
-        {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-        }
-    };
-
     private readonly HttpClient _client;
 
     public AdminApi(HttpClient client) => _client = client;
@@ -39,7 +31,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw await GetErrorAsync(response, cancellationToken);
+            throw await response.GetErrorAsync(cancellationToken);
         }
 
         var releaseResponse = await response.Content.ReadFromJsonAsync<PublishAppReleaseResponse>(cancellationToken: cancellationToken);
@@ -55,7 +47,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw await GetErrorAsync(response, cancellationToken);
+            throw await response.GetErrorAsync(cancellationToken);
         }
 
         var appResponse = await response.Content.ReadFromJsonAsync<AppInstallerReleaseInfoResponse>(cancellationToken: cancellationToken);
@@ -68,7 +60,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw await GetErrorAsync(response, cancellationToken);
+            throw await response.GetErrorAsync(cancellationToken);
         }
 
         var errorResponse = await response.Content.ReadFromJsonAsync<SendAppErrorResponse>(cancellationToken: cancellationToken);
@@ -82,7 +74,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw await GetErrorAsync(response, cancellationToken);
+            throw await response.GetErrorAsync(cancellationToken);
         }
     }
 
@@ -95,7 +87,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw await GetErrorAsync(response, cancellationToken);
+            throw await response.GetErrorAsync(cancellationToken);
         }
     }
 
@@ -108,28 +100,7 @@ internal sealed class AdminApi : IAdminApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw await GetErrorAsync(response, cancellationToken);
+            throw await response.GetErrorAsync(cancellationToken);
         }
-    }
-
-    private static async Task<AppRegistryClientException> GetErrorAsync(HttpResponseMessage response, CancellationToken cancellationToken)
-    {
-        var serverError = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        try
-        {
-            var error = JsonSerializer.Deserialize<AppRegistryServiceError>(serverError, SerializerOptions);
-
-            if (error != null)
-            {
-                return new AppRegistryClientException { ErrorCode = error.ErrorCode, StatusCode = response.StatusCode };
-            }
-        }
-        catch // Invalid JSON or wrong type
-        {
-
-        }
-
-        return new AppRegistryClientException(serverError) { StatusCode = response.StatusCode };
     }
 }

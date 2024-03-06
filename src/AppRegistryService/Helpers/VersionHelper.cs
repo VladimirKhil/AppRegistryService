@@ -12,4 +12,15 @@ internal static class VersionHelper
 
         return new Version(major, minor, build);
     }
+
+    internal static int ToOSInt(this Version version) => version.Major * 100_000_000 + version.Minor * 100_000 + Math.Max(0, version.Build);
+
+    internal static Version CreateOSVersion(int value)
+    {
+        var major = value / 100_000_000;
+        var minor = (value % 100_000_000) / 100_000;
+        var build = value % 100_000;
+
+        return new Version(major, minor, build);
+    }
 }

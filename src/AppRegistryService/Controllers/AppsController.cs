@@ -83,7 +83,7 @@ public sealed class AppsController : ControllerBase
         [FromHeader(Name = "Accept-Language")] string acceptLanguage = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default)
     {
-        await _appsService.PostAppUsageAsync(appId, appUsageInfo.AppVersion, appUsageInfo.OSVersion, appUsageInfo.OSArchitecture, cancellationToken);
+        await _appsService.TryPostAppUsageAsync(appId, appUsageInfo.AppVersion, appUsageInfo.OSVersion, appUsageInfo.OSArchitecture, cancellationToken);
         var (release, installer) = await _appsService.GetAppLatestInstallerAsync(appId, appUsageInfo.OSVersion, CultureHelper.GetLanguageFromAcceptLanguageHeader(acceptLanguage), cancellationToken);
 
         return new AppInstallerReleaseInfoResponse

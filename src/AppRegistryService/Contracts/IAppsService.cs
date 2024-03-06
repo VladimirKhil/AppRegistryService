@@ -31,7 +31,7 @@ public interface IAppsService
         string language = Constants.DefaultLanguageCode,
         CancellationToken cancellationToken = default);
 
-    Task PostAppUsageAsync(
+    Task<bool> TryPostAppUsageAsync(
         Guid appId,
         Version appVersion,
         Version osVersion,

@@ -1,4 +1,5 @@
-﻿using AppRegistryService.Contract;
+﻿using AppRegistryService.Client.Helpers;
+using AppRegistryService.Contract;
 using AppRegistryService.Contract.Models;
 using AppRegistryService.Contract.Requests;
 using AppRegistryService.Contract.Responses;
@@ -46,7 +47,7 @@ internal sealed class AppsApi : IAppsApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
+            throw await response.GetErrorAsync(cancellationToken);
         }
 
         var appResponse = await response.Content.ReadFromJsonAsync<AppInstallerReleaseInfoResponse>(cancellationToken: cancellationToken);
@@ -59,7 +60,7 @@ internal sealed class AppsApi : IAppsApi
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException(await response.Content.ReadAsStringAsync(cancellationToken), null, response.StatusCode);
+            throw await response.GetErrorAsync(cancellationToken);
         }
 
         var errorResponse = await response.Content.ReadFromJsonAsync<SendAppErrorResponse>(cancellationToken: cancellationToken);

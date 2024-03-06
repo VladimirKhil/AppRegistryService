@@ -284,7 +284,7 @@ internal sealed class AppsServiceTests : TestsBase
     [Test]
     public async Task GetRuns_Ok()
     {
-        await AppsService.PostAppUsageAsync(AppId, new Version(1, 0), new Version(12, 0), System.Runtime.InteropServices.Architecture.X64);
+        await AppsService.TryPostAppUsageAsync(AppId, new Version(1, 0), new Version(12, 0), System.Runtime.InteropServices.Architecture.X64);
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var (runs, total) = await AppsService.GetAppRunsPageAsync(AppId, today, 10);

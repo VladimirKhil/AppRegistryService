@@ -65,12 +65,12 @@ public sealed class AppsService : IAppsService
         string language,
         CancellationToken cancellationToken = default)
     {
-        var versionValue = osVersion == null ? int.MaxValue : osVersion.ToInt();
+        var osVersionInt = osVersion == null ? int.MaxValue : osVersion.ToOSInt();
 
         var query = from r in _connection.Releases
                     where r.AppId == appId
                     from i in _connection.Installers
-                    where i.ReleaseId == r.Id && r.MinimumOSVersion <= versionValue
+                    where i.ReleaseId == r.Id && r.MinimumOSVersion <= osVersionInt
                     from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
                     from rl in _connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
                     from il in _connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
@@ -124,24 +124,28 @@ public sealed class AppsService : IAppsService
         return (runs.Select(r => new AppRunWithVersion(r.Run, r.Version)).ToArray(), total);
     }
 
-    public async Task PostAppUsageAsync(
+    public async Task<bool> TryPostAppUsageAsync(
         Guid appId,
         Version appVersion,
         Version osVersion,
         Architecture osArchitecture,
         CancellationToken cancellationToken = default)
     {
-        var release = await _connection.Releases.FirstOrDefaultAsync(r => r.AppId == appId && r.Version == appVersion.ToInt(), cancellationToken)
-            ?? throw new ServiceException(Contract.Models.WellKnownAppRegistryServiceErrorCode.AppReleaseNotFound, HttpStatusCode.NotFound);
+        var release = await _connection.Releases.FirstOrDefaultAsync(r => r.AppId == appId && r.Version == appVersion.ToInt(), cancellationToken);
 
-        var osVersionValue = osVersion.ToInt();
+        if (release == null)
+        {
+            return false;
+        }
+
+        var osVersionInt = osVersion.ToOSInt();
         var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
         await _connection.Runs.InsertOrUpdateAsync(
             () => new AppRun
             {
                 ReleaseId = release.Id,
-                OSVersion = osVersionValue,
+                OSVersion = osVersionInt,
                 OSArchitecture = osArchitecture,
                 Date = today,
                 Count = 1,
@@ -149,7 +153,7 @@ public sealed class AppsService : IAppsService
             appRun => new AppRun
             {
                 ReleaseId = release.Id,
-                OSVersion = osVersionValue,
+                OSVersion = osVersionInt,
                 OSArchitecture = osArchitecture,
                 Date = today,
                 Count = appRun.Count + 1,
@@ -157,13 +161,15 @@ public sealed class AppsService : IAppsService
             () => new AppRun
             {
                 ReleaseId = release.Id,
-                OSVersion = osVersionValue,
+                OSVersion = osVersionInt,
                 OSArchitecture = osArchitecture,
                 Date = today
             },
             cancellationToken);
 
         _metrics.AddRun(appId);
+
+        return true;
     }
 
     public async Task<Guid> PublishAppReleaseAsync(Guid appId, AppReleaseParameters parameters, CancellationToken cancellationToken = default)
@@ -176,7 +182,7 @@ public sealed class AppsService : IAppsService
                 Id = releaseId,
                 AppId = appId,
                 Version = parameters.Version.ToInt(),
-                MinimumOSVersion = parameters.MinimumOSVersion.ToInt(),
+                MinimumOSVersion = parameters.MinimumOSVersion.ToOSInt(),
                 Level = parameters.Level,
                 Notes = parameters.Notes,
                 PublishDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date)
@@ -222,7 +228,7 @@ public sealed class AppsService : IAppsService
                 Contract.Models.WellKnownAppRegistryServiceErrorCode.AppReleaseNotFound,
                 HttpStatusCode.NotFound);
 
-        var osVersion = appErrorInfo.OSVersion.ToInt();
+        var osVersionInt = appErrorInfo.OSVersion.ToOSInt();
 
         await _connection.Errors.InsertOrUpdateAsync(
             () => new AppError
@@ -231,7 +237,7 @@ public sealed class AppsService : IAppsService
                 Time = appErrorInfo.ErrorTime,
                 Message = appErrorInfo.ErrorMessage,
                 UserNotes = appErrorInfo.UserNotes,
-                OSVersion = osVersion,
+                OSVersion = osVersionInt,
                 OSArchitecture = appErrorInfo.OSArchitecture,
                 Status = ErrorStatus.NotFixed,
                 Count = 1
@@ -242,7 +248,7 @@ public sealed class AppsService : IAppsService
                 Time = error.Status == ErrorStatus.Fixed ? error.Time : appErrorInfo.ErrorTime,
                 Message = appErrorInfo.ErrorMessage,
                 UserNotes = error.UserNotes,
-                OSVersion = osVersion,
+                OSVersion = osVersionInt,
                 OSArchitecture = appErrorInfo.OSArchitecture,
                 Status = error.Status,
                 Count = error.Count + 1,
@@ -250,7 +256,7 @@ public sealed class AppsService : IAppsService
             () => new AppError
             {
                 ReleaseId = release.Id,
-                OSVersion = osVersion,
+                OSVersion = osVersionInt,
                 OSArchitecture = appErrorInfo.OSArchitecture,
                 Message = appErrorInfo.ErrorMessage
             },
@@ -260,7 +266,7 @@ public sealed class AppsService : IAppsService
 
         var error = await _connection.Errors.FirstAsync(
             e => e.ReleaseId == release.Id
-                && e.OSVersion == osVersion
+                && e.OSVersion == osVersionInt
                 && e.OSArchitecture == appErrorInfo.OSArchitecture
                 && e.Message == appErrorInfo.ErrorMessage,
             cancellationToken);

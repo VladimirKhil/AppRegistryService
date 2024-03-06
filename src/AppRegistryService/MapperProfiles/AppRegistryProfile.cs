@@ -18,7 +18,7 @@ internal sealed class AppRegistryProfile : Profile
 
         CreateMap<AppRelease, AppReleaseInfo>()
             .ForMember(dest => dest.Version, act => act.MapFrom(src => VersionHelper.CreateVersion(src.Version)))
-            .ForMember(dest => dest.MinimumOSVersion, act => act.MapFrom(src => VersionHelper.CreateVersion(src.MinimumOSVersion)));
+            .ForMember(dest => dest.MinimumOSVersion, act => act.MapFrom(src => VersionHelper.CreateOSVersion(src.MinimumOSVersion)));
 
         CreateMap<AppInstaller, AppInstallerInfo>();
     }
