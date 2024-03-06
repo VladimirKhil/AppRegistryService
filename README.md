@@ -13,7 +13,7 @@ Collects apps run and error statistics.
 ## Docker
 
 
-    docker run -p 5000:5000 vladimirkhil/appregistryservice:1.0.0
+    docker run -p 5000:5000 vladimirkhil/appregistryservice:1.0.10
 
 
 ## Helm
@@ -21,5 +21,5 @@ Collects apps run and error statistics.
 
     dependencies:
     - name: appregistry
-      version: "1.0.0"
+      version: "1.0.2"
       repository: "https://vladimirkhil.github.io/AppRegistryService/helm/repo"

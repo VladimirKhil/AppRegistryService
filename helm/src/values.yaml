@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: vladimirkhil/appregistryservice
   pullPolicy: IfNotPresent
-  tag: 1.0.3
+  tag: 1.0.10
 
 nameOverride: ""
 fullnameOverride: ""
