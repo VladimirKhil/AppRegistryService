@@ -7,16 +7,15 @@ namespace AppRegistryService.Metrics;
 /// </summary>
 public sealed class OtelMetrics
 {
+    public const string MeterName = "AppRegistry";
+
     private Counter<int> AppRunsCounter { get; }
 
     private Counter<int> AppErrorsCounter { get; }
 
-    public string MeterName { get; }
-
-    public OtelMetrics(string meterName = "AppRegistry")
+    public OtelMetrics(IMeterFactory meterFactory)
     {
-        var meter = new Meter(meterName);
-        MeterName = meterName;
+        var meter = new Meter(MeterName);
 
         AppRunsCounter = meter.CreateCounter<int>("app-runs");
         AppErrorsCounter = meter.CreateCounter<int>("app-errors");

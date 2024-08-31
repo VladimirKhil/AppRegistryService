@@ -46,8 +46,8 @@ internal abstract class TestsBase
 
         services.AddAppRegistryDatabase(configuration);
 
-        var meters = new OtelMetrics();
-        services.AddSingleton(meters);
+        services.AddMetrics();
+        services.AddSingleton<OtelMetrics>();
 
         services.AddSingleton<ILoggerFactory, NullLoggerFactory>();
 
@@ -132,7 +132,7 @@ internal abstract class TestsBase
             Id = ReleaseId,
             AppId = AppId,
             Version = 1_000_000,
-            MinimumOSVersion = 10_000_000,
+            MinimumOSVersion = 1_000_000_000,
             Level = Database.Models.ReleaseLevel.Major,
             PublishDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Notes = "notes"
@@ -150,7 +150,7 @@ internal abstract class TestsBase
             Id = ReleaseId3,
             AppId = AppId3,
             Version = 1_000_000,
-            MinimumOSVersion = 10_000_000,
+            MinimumOSVersion = 1_000_000_000,
             Level = Database.Models.ReleaseLevel.Major,
             PublishDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Notes = "notes"
@@ -204,5 +204,7 @@ internal abstract class TestsBase
         await DbConnection.FamiliesLocalized.DeleteAsync();
         await DbConnection.Families.DeleteAsync();
         await DbConnection.Languages.DeleteAsync();
+
+        DbConnection.Dispose();
     }
 }

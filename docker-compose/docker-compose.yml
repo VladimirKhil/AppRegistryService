@@ -15,7 +15,7 @@ services:
   appregistry:
     image: vladimirkhil/appregistryservice:${SERVICE_TAG}
     ports:
-      - 5048:5000
+      - 5048:8080
     volumes:
       - ./log:/app/log
     environment:

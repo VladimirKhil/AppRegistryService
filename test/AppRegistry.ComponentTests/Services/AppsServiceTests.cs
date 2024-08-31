@@ -35,7 +35,7 @@ internal sealed class AppsServiceTests : TestsBase
         {
             Assert.That(release.AppId, Is.EqualTo(AppId));
             Assert.That(release.Version, Is.EqualTo(1_000_000));
-            Assert.That(release.MinimumOSVersion, Is.EqualTo(10_000_000));
+            Assert.That(release.MinimumOSVersion, Is.EqualTo(1_000_000_000));
             Assert.That(release.Notes, Is.EqualTo("notes"));
             Assert.That(release.PublishDate, Is.EqualTo(DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date)));
             Assert.That(release.Level, Is.EqualTo(ReleaseLevel.Major));
@@ -61,7 +61,7 @@ internal sealed class AppsServiceTests : TestsBase
         {
             Assert.That(release.AppId, Is.EqualTo(AppId));
             Assert.That(release.Version, Is.EqualTo(1_000_000));
-            Assert.That(release.MinimumOSVersion, Is.EqualTo(10_000_000));
+            Assert.That(release.MinimumOSVersion, Is.EqualTo(1_000_000_000));
             Assert.That(release.Notes, Is.EqualTo("заметки"));
             Assert.That(release.PublishDate, Is.EqualTo(DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date)));
             Assert.That(release.Level, Is.EqualTo(ReleaseLevel.Major));
@@ -97,7 +97,7 @@ internal sealed class AppsServiceTests : TestsBase
         {
             Assert.That(release.AppId, Is.EqualTo(AppId));
             Assert.That(release.Version, Is.EqualTo(2_000_000));
-            Assert.That(release.MinimumOSVersion, Is.EqualTo(6_000_000));
+            Assert.That(release.MinimumOSVersion, Is.EqualTo(600_000_000));
             Assert.That(release.Notes, Is.EqualTo("test notes"));
             Assert.That(release.PublishDate, Is.EqualTo(DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date)));
             Assert.That(release.Level, Is.EqualTo(ReleaseLevel.Major));
@@ -119,7 +119,7 @@ internal sealed class AppsServiceTests : TestsBase
         {
             Assert.That(releaseRu.AppId, Is.EqualTo(AppId));
             Assert.That(releaseRu.Version, Is.EqualTo(2_000_000));
-            Assert.That(releaseRu.MinimumOSVersion, Is.EqualTo(6_000_000));
+            Assert.That(releaseRu.MinimumOSVersion, Is.EqualTo(600_000_000));
             Assert.That(releaseRu.Notes, Is.EqualTo("тестовые заметки"));
             Assert.That(releaseRu.PublishDate, Is.EqualTo(DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date)));
             Assert.That(releaseRu.Level, Is.EqualTo(ReleaseLevel.Major));
@@ -226,7 +226,7 @@ internal sealed class AppsServiceTests : TestsBase
     }
 
     [Test]
-    public void GetLatestInstaller_UpsupportedOSVersion_Fail()
+    public void GetLatestInstaller_UnsupportedOSVersion_Fail()
     {
         var exc = Assert.ThrowsAsync<ServiceException>(() => AppsService.GetAppLatestInstallerAsync(AppId, new Version(2, 0)));
 
@@ -302,7 +302,7 @@ internal sealed class AppsServiceTests : TestsBase
 
             Assert.That(run.ReleaseId, Is.EqualTo(ReleaseId));
             Assert.That(run.Count, Is.GreaterThanOrEqualTo(1));
-            Assert.That(run.OSVersion, Is.EqualTo(12_000_000));
+            Assert.That(run.OSVersion, Is.EqualTo(1_200_000_000));
             Assert.That(run.OSArchitecture, Is.EqualTo(System.Runtime.InteropServices.Architecture.X64));
             Assert.That(run.Date, Is.EqualTo(today));
         });
@@ -336,14 +336,14 @@ internal sealed class AppsServiceTests : TestsBase
 
             Assert.That(error.ReleaseId, Is.EqualTo(ReleaseId));
             Assert.That(error.Count, Is.GreaterThanOrEqualTo(1));
-            Assert.That(error.OSVersion, Is.EqualTo(12_000_000));
+            Assert.That(error.OSVersion, Is.EqualTo(1_200_000_000));
             Assert.That(error.OSArchitecture, Is.EqualTo(System.Runtime.InteropServices.Architecture.X64));
             Assert.That(error.Message, Is.EqualTo("test error"));
             Assert.That(error.Time.Subtract(now).TotalSeconds, Is.LessThan(1));
             Assert.That(error.Status, Is.EqualTo(ErrorStatus.NotFixed));
         });
 
-        await AppsService.ResolveErrorsAsync(new[] { error.Id });
+        await AppsService.ResolveErrorsAsync([error.Id]);
 
         var (errors2, total2) = await AppsService.GetAppErrorsPageAsync(AppId, 0, 10);
 

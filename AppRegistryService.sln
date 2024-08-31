@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppRegistry.IntegrationTests", "test\AppRegistry.IntegrationTests\AppRegistry.IntegrationTests.csproj", "{EB63CE4A-992A-47AC-8FE7-F24AC40A1C73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppRegistry.ComponentTests", "test\AppRegistry.ComponentTests\AppRegistry.ComponentTests.csproj", "{86131286-16D8-4F86-9467-236E9753C136}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppRegistry.ComponentTests", "test\AppRegistry.ComponentTests\AppRegistry.ComponentTests.csproj", "{86131286-16D8-4F86-9467-236E9753C136}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

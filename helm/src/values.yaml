@@ -16,7 +16,7 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 80
-  targetPort: 5000
+  targetPort: 8080
 
 ingress:
   enabled: false
@@ -27,11 +27,22 @@ ingress:
 
 resources: {}
 
-logPath: ''
-
 database:
   host: ''
   name: 'appregistry'
   user: 'postgres'
   passwordKey: ''
   passwordValue: 'postgres-password'
+  backup:
+    enabled: false
+    schedule: '0 0 * * *' # Run every day at midnight
+    imageVersion: 15
+    securityContext: {}
+    volumePath: ''
+
+options:
+  logLevel: Warning
+  otel:
+    uri: 'http://localhost:4317'
+    metric:
+      exportInterval: 60000

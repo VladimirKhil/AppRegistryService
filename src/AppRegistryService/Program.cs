@@ -1,22 +1,27 @@
 using AppRegistry.Database;
 using AppRegistryService.Configuration;
+using AppRegistryService.Contract.Models;
+using AppRegistryService.Contract.Requests;
+using AppRegistryService.Contract.Responses;
 using AppRegistryService.Contracts;
-using AppRegistryService.MapperProfiles;
+using AppRegistryService.EndpointDefinitions;
 using AppRegistryService.Metrics;
 using AppRegistryService.Middlewares;
 using AppRegistryService.Services;
 using AspNetCoreRateLimit;
-using AutoMapper;
 using FluentMigrator.Runner;
 using FluentMigrator.Runner.Conventions;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using Serilog;
 using System.Data.Common;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((ctx, lc) => lc
+    .WriteTo.Console(new Serilog.Formatting.Display.MessageTemplateTextFormatter(
+        "[{Timestamp:yyyy/MM/dd HH:mm:ss} {Level}] {Message:lj} {Exception}{NewLine}"))
     .ReadFrom.Configuration(ctx.Configuration)
     .Filter.ByExcluding(logEvent =>
         logEvent.Exception is BadHttpRequestException || logEvent.Exception is OperationCanceledException));
@@ -35,10 +40,6 @@ static void ConfigureServices(IServiceCollection services, IConfiguration config
 {
     services.Configure<AppRegistryOptions>(configuration.GetSection(AppRegistryOptions.ConfigurationSectionName));
 
-    services.AddControllers();
-
-    ConfigureAutoMapper(services);
-
     services.AddAppRegistryDatabase(configuration);
     ConfigureMigrationRunner(services, configuration);
 
@@ -47,14 +48,11 @@ static void ConfigureServices(IServiceCollection services, IConfiguration config
 
     AddRateLimits(services, configuration);
     AddMetrics(services);
-}
 
-static void ConfigureAutoMapper(IServiceCollection services)
-{
-    var mapperConfiguration = new MapperConfiguration(cfg => cfg.AddProfile<AppRegistryProfile>());
-    var mapper = mapperConfiguration.CreateMapper();
-
-    services.AddSingleton(mapper);
+    services.ConfigureHttpJsonOptions(options =>
+    {
+        options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppRegistrySerializerContext.Default);
+    });
 }
 
 static void ConfigureMigrationRunner(IServiceCollection services, IConfiguration configuration)
@@ -84,18 +82,16 @@ static void AddRateLimits(IServiceCollection services, IConfiguration configurat
 
 static void AddMetrics(IServiceCollection services)
 {
-    var meters = new OtelMetrics();
+    services.AddSingleton<OtelMetrics>();
 
     services.AddOpenTelemetry().WithMetrics(builder =>
         builder
             .ConfigureResource(rb => rb.AddService("AppRegistry"))
-            .AddMeter(meters.MeterName)
+            .AddMeter(OtelMetrics.MeterName)
             .AddAspNetCoreInstrumentation()
             .AddRuntimeInstrumentation()
             .AddProcessInstrumentation()
-            .AddPrometheusExporter());
-
-    services.AddSingleton(meters);
+            .AddOtlpExporter());
 }
 
 static void Configure(WebApplication app)
@@ -103,14 +99,15 @@ static void Configure(WebApplication app)
     app.UseMiddleware<ErrorHandlingMiddleware>();
 
     app.UseRouting();
-    app.MapControllers();
+
+    app.DefineFamiliesEndpoints();
+    app.DefineAppEndpoints();
+    app.DefineAdminEndpoints();
 
     app.UseIpRateLimiting();
 
     CreateDatabase(app);
     ApplyMigrations(app);
-
-    app.UseOpenTelemetryPrometheusScrapingEndpoint();
 }
 
 static void CreateDatabase(WebApplication app)
@@ -137,3 +134,21 @@ static void ApplyMigrations(WebApplication app)
         runner.MigrateUp();
     }
 }
+
+[JsonSerializable(typeof(AppFamilyInfo[]))]
+[JsonSerializable(typeof(AppInfo[]))]
+[JsonSerializable(typeof(AppUsageInfo))]
+[JsonSerializable(typeof(ScreenshotsResponse))]
+[JsonSerializable(typeof(ResultsPage<AppReleaseInfo>))]
+[JsonSerializable(typeof(ResultsPage<AppErrorInfo>))]
+[JsonSerializable(typeof(ResultsPage<AppRunInfo>))]
+[JsonSerializable(typeof(AppInstallerReleaseInfoResponse[]))]
+[JsonSerializable(typeof(PublishAppReleaseResponse))]
+[JsonSerializable(typeof(AppErrorRequest))]
+[JsonSerializable(typeof(SendAppErrorResponse))]
+[JsonSerializable(typeof(ResolveErrorsRequest))]
+[JsonSerializable(typeof(UpdateReleaseRequest))]
+[JsonSerializable(typeof(AppReleaseRequest))]
+[JsonSerializable(typeof(UpdateInstallerRequest))]
+[JsonSerializable(typeof(AppRegistryServiceError))]
+internal partial class AppRegistrySerializerContext : JsonSerializerContext { }
