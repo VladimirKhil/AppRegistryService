@@ -3,5 +3,5 @@
 /// <summary>
 /// Defines applications screenshots response.
 /// </summary>
-/// <param name="ScreenshotUris">Sccreenshots uris.</param>
+/// <param name="ScreenshotUris">Screenshots uris.</param>
 public sealed record ScreenshotsResponse(string[] ScreenshotUris);
