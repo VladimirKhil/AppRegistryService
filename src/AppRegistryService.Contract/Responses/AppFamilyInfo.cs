@@ -22,6 +22,11 @@ public sealed class AppFamilyInfo
     public string? Description { get; set; }
 
     /// <summary>
+    /// Application family details.
+    /// </summary>
+    public string? Details { get; set; }
+
+    /// <summary>
     /// Application family logo uri.
     /// </summary>
     public Uri? LogoUri { get; set; }

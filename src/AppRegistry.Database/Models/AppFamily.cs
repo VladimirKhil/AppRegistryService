@@ -29,6 +29,12 @@ public sealed class AppFamily
     public string? Description { get; set; }
 
     /// <summary>
+    /// Application family details.
+    /// </summary>
+    [Column(DataType = DataType.NVarChar), Nullable]
+    public string? Details { get; set; }
+
+    /// <summary>
     /// Application family logo uri.
     /// </summary>
     [Column(DataType = DataType.Image), Nullable]

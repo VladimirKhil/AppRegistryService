@@ -19,6 +19,11 @@ export interface AppFamilyInfo {
 	description?: string;
 
 	/**
+	 * Application family details.
+	 */
+	details?: string;
+
+	/**
 	 * Application family logo uri.
 	 */
 	logoUri?: string;

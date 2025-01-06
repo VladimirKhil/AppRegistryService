@@ -8,30 +8,34 @@ using System.Net;
 
 namespace AppRegistryService.Services;
 
-public sealed class FamiliesService : IFamiliesService
+public sealed class FamiliesService(AppRegistryDbConnection connection) : IFamiliesService
 {
-    private readonly AppRegistryDbConnection _connection;
-
-    public FamiliesService(AppRegistryDbConnection connection) => _connection = connection;
-
     public async Task<AppFamily[]> GetFamiliesAsync(string language, CancellationToken cancellationToken)
     {
-        var query = from f in _connection.Families
-                    from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
-                    from fl in _connection.FamiliesLocalized.Where(fl => fl.FamilyId == f.Id && fl.LanguageId == l.Id).DefaultIfEmpty()
+        var query = from f in connection.Families
+                    from l in connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
+                    from fl in connection.FamiliesLocalized.Where(fl => fl.FamilyId == f.Id && fl.LanguageId == l.Id).DefaultIfEmpty()
                     select new { Family = f, Localization = fl };
 
         return await query.Select(r => r.Localization == null
             ? r.Family
-            : new AppFamily { Id = r.Family.Id, Name = r.Family.Name, Description = r.Localization.Description, LogoUri = r.Family.LogoUri })
+            : new AppFamily
+            {
+                Id = r.Family.Id,
+                Name = r.Family.Name,
+                Description = r.Localization.Description,
+                Details = r.Localization.Details,
+                LogoUri = r.Family.LogoUri
+            })
             .ToArrayAsync(cancellationToken);
     }
 
     public async Task<App[]> GetFamilyAppsAsync(Guid appFamilyId, string language, CancellationToken cancellationToken)
     {
-        var query = from a in _connection.Apps.Where(app => app.FamilyId == appFamilyId)
-                    from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
-                    from al in _connection.AppsLocalized.Where(al => al.AppId == a.Id && al.LanguageId == l.Id).DefaultIfEmpty()
+        var query = from a in connection.Apps.Where(app => app.FamilyId == appFamilyId)
+                    from l in connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
+                    from al in connection.AppsLocalized.Where(al => al.AppId == a.Id && al.LanguageId == l.Id).DefaultIfEmpty()
+                    orderby a.Order ascending
                     select new { App = a, Localization = al };
 
         var apps = await query.Select(r => r.Localization == null
@@ -41,7 +45,7 @@ public sealed class FamiliesService : IFamiliesService
 
         if (apps.Length == 0)
         {
-            var familyExists = await _connection.Families.AnyAsync(family => family.Id == appFamilyId, cancellationToken);
+            var familyExists = await connection.Families.AnyAsync(family => family.Id == appFamilyId, cancellationToken);
 
             if (!familyExists)
             {

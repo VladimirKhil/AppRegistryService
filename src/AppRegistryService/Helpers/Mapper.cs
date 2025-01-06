@@ -10,6 +10,7 @@ internal static class Mapper
         Id = appFamily.Id,
         Name = appFamily.Name,
         Description = appFamily.Description,
+        Details = appFamily.Details,
         LogoUri = appFamily.LogoUri == null ? null : new Uri(appFamily.LogoUri)
     };
 

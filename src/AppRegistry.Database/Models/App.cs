@@ -22,6 +22,12 @@ public sealed class App
     public Guid FamilyId { get; set; }
 
     /// <summary>
+    /// Application order in the family.
+    /// </summary>
+    [Column(DataType = DataType.Int32), NotNull]
+    public int Order { get; set; }
+
+    /// <summary>
     /// Application name.
     /// </summary>
     [Column(DataType = DataType.NVarChar), NotNull]

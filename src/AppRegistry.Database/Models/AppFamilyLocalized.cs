@@ -26,4 +26,10 @@ public sealed class AppFamilyLocalized
     /// </summary>
     [Column(DataType = DataType.NVarChar), Nullable]
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Application family localized details.
+    /// </summary>
+    [Column(DataType = DataType.NVarChar), Nullable]
+    public string? Details { get; set; }
 }

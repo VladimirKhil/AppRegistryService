@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Authors>Vladimir Khil</Authors>
     <Company>Khil-soft</Company>
-    <Copyright>Copyright © Khil-soft 2024</Copyright>
+    <Copyright>Copyright © Khil-soft 2024 - 2025</Copyright>
     <PackageProjectUrl>https://github.com/VladimirKhil/AppRegistryService</PackageProjectUrl>
     <RepositoryUrl>https://github.com/VladimirKhil/AppRegistryService</RepositoryUrl>
   </PropertyGroup>
