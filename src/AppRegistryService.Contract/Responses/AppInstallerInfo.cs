@@ -16,6 +16,11 @@ public sealed class AppInstallerInfo
     public Guid ReleaseId { get; set; }
 
     /// <summary>
+    /// Application installer order.
+    /// </summary>
+    public int Order { get; set; }
+
+    /// <summary>
     /// Installer file uri.
     /// </summary>
     public Uri? Uri { get; set; }

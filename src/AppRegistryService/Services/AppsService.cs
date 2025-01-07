@@ -12,25 +12,20 @@ using System.Runtime.InteropServices;
 
 namespace AppRegistryService.Services;
 
-public sealed class AppsService : IAppsService
+public sealed class AppsService(AppRegistryDbConnection connection, OtelMetrics metrics) : IAppsService
 {
-    private readonly AppRegistryDbConnection _connection;
-    private readonly OtelMetrics _metrics;
-
-    public AppsService(AppRegistryDbConnection connection, OtelMetrics metrics)
-    {
-        _connection = connection;
-        _metrics = metrics;
-    }
-
     public async Task<string[]> GetAppSchreenshotsAsync(Guid appId, CancellationToken cancellationToken = default) =>
-        await _connection.Screenshots.Where(s => s.AppId == appId).Select(s => s.ScreentshotUri).ToArrayAsync(cancellationToken);
+        await connection.Screenshots.Where(s => s.AppId == appId).Select(s => s.ScreentshotUri).ToArrayAsync(cancellationToken);
 
-    public async Task<(AppErrorWithVersion[], int)> GetAppErrorsPageAsync(Guid appId, int from, int count, CancellationToken cancellationToken = default)
+    public async Task<(AppErrorWithVersion[], int)> GetAppErrorsPageAsync(
+        Guid appId,
+        int from,
+        int count,
+        CancellationToken cancellationToken = default)
     {
-        var query = from r in _connection.Releases
+        var query = from r in connection.Releases
                     where r.AppId == appId
-                    from e in _connection.Errors
+                    from e in connection.Errors
                     where e.ReleaseId == r.Id && e.Status != ErrorStatus.Fixed
                     orderby e.Time descending
                     select new { Error = e, r.Version };
@@ -43,14 +38,14 @@ public sealed class AppsService : IAppsService
 
     public async Task<(AppRelease, AppInstaller)[]> GetAppInstallersAsync(Guid appId, string language, CancellationToken cancellationToken = default)
     {
-        var query = from r in _connection.Releases
+        var query = from r in connection.Releases
                     where r.AppId == appId
-                    from i in _connection.Installers
+                    from i in connection.Installers
                     where i.ReleaseId == r.Id
-                    from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
-                    from rl in _connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
-                    from il in _connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
-                    orderby r.PublishDate descending
+                    from l in connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
+                    from rl in connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
+                    from il in connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
+                    orderby i.Order ascending
                     select new { Release = Localize(r, rl), Installer = Localize(i, il) };
 
         var result = await query.ToArrayAsync(cancellationToken);
@@ -67,13 +62,13 @@ public sealed class AppsService : IAppsService
     {
         var osVersionInt = osVersion == null ? int.MaxValue : osVersion.ToOSInt();
 
-        var query = from r in _connection.Releases
+        var query = from r in connection.Releases
                     where r.AppId == appId
-                    from i in _connection.Installers
+                    from i in connection.Installers
                     where i.ReleaseId == r.Id && r.MinimumOSVersion <= osVersionInt
-                    from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
-                    from rl in _connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
-                    from il in _connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
+                    from l in connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
+                    from rl in connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
+                    from il in connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
                     orderby r.PublishDate descending
                     select new { Release = Localize(r, rl), Installer = Localize(i, il) };
 
@@ -91,10 +86,10 @@ public sealed class AppsService : IAppsService
         string language,
         CancellationToken cancellationToken = default)
     {
-        var query = from r in _connection.Releases
+        var query = from r in connection.Releases
                     where r.AppId == appId
-                    from l in _connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
-                    from rl in _connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
+                    from l in connection.Languages.Where(l => l.Code == language).DefaultIfEmpty()
+                    from rl in connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
                     orderby r.PublishDate descending
                     select new { Release = r, Localization = rl };
 
@@ -111,9 +106,9 @@ public sealed class AppsService : IAppsService
 
     public async Task<(AppRunWithVersion[], int)> GetAppRunsPageAsync(Guid appId, DateOnly to, int count, CancellationToken cancellationToken = default)
     {
-        var query = from r in _connection.Releases
+        var query = from r in connection.Releases
                     where r.AppId == appId
-                    from run in _connection.Runs
+                    from run in connection.Runs
                     where run.ReleaseId == r.Id && run.Date <= to
                     orderby run.Date descending
                     select new { Run = run, r.Version };
@@ -131,7 +126,7 @@ public sealed class AppsService : IAppsService
         Architecture osArchitecture,
         CancellationToken cancellationToken = default)
     {
-        var release = await _connection.Releases.FirstOrDefaultAsync(r => r.AppId == appId && r.Version == appVersion.ToInt(), cancellationToken);
+        var release = await connection.Releases.FirstOrDefaultAsync(r => r.AppId == appId && r.Version == appVersion.ToInt(), cancellationToken);
 
         if (release == null)
         {
@@ -141,7 +136,7 @@ public sealed class AppsService : IAppsService
         var osVersionInt = osVersion.ToOSInt();
         var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
-        await _connection.Runs.InsertOrUpdateAsync(
+        await connection.Runs.InsertOrUpdateAsync(
             () => new AppRun
             {
                 ReleaseId = release.Id,
@@ -167,7 +162,7 @@ public sealed class AppsService : IAppsService
             },
             cancellationToken);
 
-        _metrics.AddRun(appId);
+        metrics.AddRun(appId);
 
         return true;
     }
@@ -176,7 +171,7 @@ public sealed class AppsService : IAppsService
     {
         var releaseId = Guid.NewGuid();
 
-        await _connection.Releases.InsertAsync(
+        await connection.Releases.InsertAsync(
             () => new AppRelease
             {
                 Id = releaseId,
@@ -193,12 +188,12 @@ public sealed class AppsService : IAppsService
         {
             foreach (var note in parameters.LocalizedNotes)
             {
-                var language = await _connection.Languages.FirstOrDefaultAsync(l => l.Code == note.Key, cancellationToken)
+                var language = await connection.Languages.FirstOrDefaultAsync(l => l.Code == note.Key, cancellationToken)
                     ?? throw new ServiceException(
                         Contract.Models.WellKnownAppRegistryServiceErrorCode.LanguageNotFound,
                         HttpStatusCode.FailedDependency);
 
-                await _connection.ReleasesLocalized.InsertAsync(() => new AppReleaseLocalized
+                await connection.ReleasesLocalized.InsertAsync(() => new AppReleaseLocalized
                 {
                     ReleaseId = releaseId,
                     LanguageId = language.Id,
@@ -212,17 +207,17 @@ public sealed class AppsService : IAppsService
     }
 
     public async Task UpdateReleaseAsync(Guid releaseId, bool isMandatory, CancellationToken cancellationToken) =>
-        await _connection.Releases.Where(r => r.Id == releaseId).Set(r => r.IsMandatory, isMandatory).UpdateAsync(cancellationToken);
+        await connection.Releases.Where(r => r.Id == releaseId).Set(r => r.IsMandatory, isMandatory).UpdateAsync(cancellationToken);
 
     public async Task UpdateInstallerAsync(Guid installerId, Guid newReleaseId, Uri newUri, CancellationToken cancellationToken = default) =>
-        await _connection.Installers.Where(i => i.Id == installerId).Set(i => i.ReleaseId, newReleaseId).Set(i => i.Uri, newUri.ToString()).UpdateAsync(cancellationToken);
+        await connection.Installers.Where(i => i.Id == installerId).Set(i => i.ReleaseId, newReleaseId).Set(i => i.Uri, newUri.ToString()).UpdateAsync(cancellationToken);
 
     public async Task ResolveErrorsAsync(int[] errorIds, CancellationToken cancellationToken = default) =>
-        await _connection.Errors.Where(e => errorIds.Contains(e.Id)).Set(e => e.Status, ErrorStatus.Fixed).UpdateAsync(cancellationToken);
+        await connection.Errors.Where(e => errorIds.Contains(e.Id)).Set(e => e.Status, ErrorStatus.Fixed).UpdateAsync(cancellationToken);
 
     public async Task<ErrorStatus> SendAppErrorReportAsync(Guid appId, AppErrorRequest appErrorInfo, CancellationToken cancellationToken = default)
     {
-        var release = await _connection.Releases.FirstOrDefaultAsync(
+        var release = await connection.Releases.FirstOrDefaultAsync(
             r => r.AppId == appId && r.Version == appErrorInfo.Version.ToInt(),
             cancellationToken) ?? throw new ServiceException(
                 Contract.Models.WellKnownAppRegistryServiceErrorCode.AppReleaseNotFound,
@@ -230,7 +225,7 @@ public sealed class AppsService : IAppsService
 
         var osVersionInt = appErrorInfo.OSVersion.ToOSInt();
 
-        await _connection.Errors.InsertOrUpdateAsync(
+        await connection.Errors.InsertOrUpdateAsync(
             () => new AppError
             {
                 ReleaseId = release.Id,
@@ -262,9 +257,9 @@ public sealed class AppsService : IAppsService
             },
             cancellationToken);
 
-        _metrics.AddError(appId);
+        metrics.AddError(appId);
 
-        var error = await _connection.Errors.FirstAsync(
+        var error = await connection.Errors.FirstAsync(
             e => e.ReleaseId == release.Id
                 && e.OSVersion == osVersionInt
                 && e.OSArchitecture == appErrorInfo.OSArchitecture

@@ -22,6 +22,12 @@ public sealed class AppInstaller
     public Guid ReleaseId { get; set; }
 
     /// <summary>
+    /// Application installer order.
+    /// </summary>
+    [Column(DataType = DataType.Int32), NotNull]
+    public int Order { get; set; }
+
+    /// <summary>
     /// Installer file uri.
     /// </summary>
     [Column(DataType = DataType.NVarChar), NotNull]

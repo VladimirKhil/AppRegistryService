@@ -46,6 +46,7 @@ internal static class Mapper
     {
         Id = appInstaller.Id,
         ReleaseId = appInstaller.ReleaseId,
+        Order = appInstaller.Order,
         Uri = appInstaller.Uri == null ? null : new Uri(appInstaller.Uri),
         Title = appInstaller.Title,
         Description = appInstaller.Description,
