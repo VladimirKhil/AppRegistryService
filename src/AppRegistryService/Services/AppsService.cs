@@ -56,16 +56,16 @@ public sealed class AppsService(AppRegistryDbConnection connection, OtelMetrics 
                             MinimumOSVersion = r.MinimumOSVersion,
                             PublishDate = r.PublishDate,
                             Version = r.Version,
-                            Notes = rl?.Notes ?? r.Notes
+                            Notes = rl.Notes ?? r.Notes
                         },
                         Installer = new AppInstaller
                         {
                             Id = i.Id,
                             AdditionalSize = i.AdditionalSize,
-                            Description = il?.Description ?? i.Description,
+                            Description = il.Description ?? i.Description,
                             ReleaseId = i.ReleaseId,
                             Size = i.Size,
-                            Title = il?.Title ?? i.Title,
+                            Title = il.Title ?? i.Title,
                             Uri = i.Uri
                         }
                     };
@@ -102,16 +102,16 @@ public sealed class AppsService(AppRegistryDbConnection connection, OtelMetrics 
                             MinimumOSVersion = r.MinimumOSVersion,
                             PublishDate = r.PublishDate,
                             Version = r.Version,
-                            Notes = rl?.Notes ?? r.Notes
+                            Notes = rl.Notes ?? r.Notes
                         },
                         Installer = new AppInstaller
                         {
                             Id = i.Id,
                             AdditionalSize = i.AdditionalSize,
-                            Description = il?.Description ?? i.Description,
+                            Description = il.Description ?? i.Description,
                             ReleaseId = i.ReleaseId,
                             Size = i.Size,
-                            Title = il?.Title ?? i.Title,
+                            Title = il.Title ?? i.Title,
                             Uri = i.Uri
                         }
                     };
@@ -148,7 +148,7 @@ public sealed class AppsService(AppRegistryDbConnection connection, OtelMetrics 
                 MinimumOSVersion = r.Release.MinimumOSVersion,
                 PublishDate = r.Release.PublishDate,
                 Version = r.Release.Version,
-                Notes = r.Localization?.Notes ?? r.Release.Notes
+                Notes = r.Localization.Notes ?? r.Release.Notes
             })
             .ToArrayAsync(cancellationToken);
 
