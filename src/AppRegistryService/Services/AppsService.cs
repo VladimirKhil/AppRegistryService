@@ -46,7 +46,29 @@ public sealed class AppsService(AppRegistryDbConnection connection, OtelMetrics 
                     from rl in connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
                     from il in connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
                     orderby i.Order ascending
-                    select new { Release = Localize(r, rl), Installer = Localize(i, il) };
+                    select new
+                    {
+                        Release = new AppRelease
+                        {
+                            Id = r.Id,
+                            AppId = r.AppId,
+                            Level = r.Level,
+                            MinimumOSVersion = r.MinimumOSVersion,
+                            PublishDate = r.PublishDate,
+                            Version = r.Version,
+                            Notes = rl?.Notes ?? r.Notes
+                        },
+                        Installer = new AppInstaller
+                        {
+                            Id = i.Id,
+                            AdditionalSize = i.AdditionalSize,
+                            Description = il?.Description ?? i.Description,
+                            ReleaseId = i.ReleaseId,
+                            Size = i.Size,
+                            Title = il?.Title ?? i.Title,
+                            Uri = i.Uri
+                        }
+                    };
 
         var result = await query.ToArrayAsync(cancellationToken);
 
@@ -70,7 +92,29 @@ public sealed class AppsService(AppRegistryDbConnection connection, OtelMetrics 
                     from rl in connection.ReleasesLocalized.Where(rl => rl.ReleaseId == r.Id && rl.LanguageId == l.Id).DefaultIfEmpty()
                     from il in connection.InstallersLocalized.Where(il => il.InstallerId == i.Id && il.LanguageId == l.Id).DefaultIfEmpty()
                     orderby r.PublishDate descending
-                    select new { Release = Localize(r, rl), Installer = Localize(i, il) };
+                    select new
+                    {
+                        Release = new AppRelease
+                        {
+                            Id = r.Id,
+                            AppId = r.AppId,
+                            Level = r.Level,
+                            MinimumOSVersion = r.MinimumOSVersion,
+                            PublishDate = r.PublishDate,
+                            Version = r.Version,
+                            Notes = rl?.Notes ?? r.Notes
+                        },
+                        Installer = new AppInstaller
+                        {
+                            Id = i.Id,
+                            AdditionalSize = i.AdditionalSize,
+                            Description = il?.Description ?? i.Description,
+                            ReleaseId = i.ReleaseId,
+                            Size = i.Size,
+                            Title = il?.Title ?? i.Title,
+                            Uri = i.Uri
+                        }
+                    };
 
         var result = await query.FirstOrDefaultAsync(cancellationToken);
 
@@ -96,7 +140,16 @@ public sealed class AppsService(AppRegistryDbConnection connection, OtelMetrics 
         var releases = await query
             .Skip(from)
             .Take(count)
-            .Select(r => Localize(r.Release, r.Localization))
+            .Select(r => new AppRelease
+            {
+                Id = r.Release.Id,
+                AppId = r.Release.AppId,
+                Level = r.Release.Level,
+                MinimumOSVersion = r.Release.MinimumOSVersion,
+                PublishDate = r.Release.PublishDate,
+                Version = r.Release.Version,
+                Notes = r.Localization?.Notes ?? r.Release.Notes
+            })
             .ToArrayAsync(cancellationToken);
 
         var total = await query.CountAsync(cancellationToken);
@@ -268,30 +321,4 @@ public sealed class AppsService(AppRegistryDbConnection connection, OtelMetrics 
 
         return error.Status;
     }
-
-    private static AppRelease Localize(AppRelease release, AppReleaseLocalized? localization) => localization == null
-        ? release
-        : new AppRelease
-        {
-            Id = release.Id,
-            AppId = release.AppId,
-            Level = release.Level,
-            MinimumOSVersion = release.MinimumOSVersion,
-            PublishDate = release.PublishDate,
-            Version = release.Version,
-            Notes = localization.Notes
-        };
-
-    private static AppInstaller Localize(AppInstaller installer, AppInstallerLocalized? localization) => localization == null
-        ? installer
-        : new AppInstaller
-        {
-            Id = installer.Id,
-            AdditionalSize = installer.AdditionalSize,
-            Description = localization.Description,
-            ReleaseId = installer.ReleaseId,
-            Size = installer.Size,
-            Title = localization.Title,
-            Uri = installer.Uri
-        };
 }
